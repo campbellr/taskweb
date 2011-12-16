@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title> TaskWeb | {% block title %}{% endblock %} </title>  
+        {% block extrahead %} {% endblock %}
+        <link rel="stylesheet" type=text/css href="{{ STATIC_URL }}task/css/common.css">
+    </head> 
+    
+    <body>
+        <div id="container">
+            <div id="headerbar">
+                <ul id="accountnav">
+                    {% if user.is_authenticated %}
+                        <li>Welcome, <b>{{user.username}}</b></li>
+                        {%  if user.is_staff %}
+                            <li>- <a href="{% url admin:index %}">Admin</a></li>
+                        {%  endif %}
+                        <li>- <a href="{% url django.contrib.auth.views.logout %}">Log out</a></li>
+                    {% else %}
+                        <li><a href="{% url django.contrib.auth.views.login %}">Log in</a></li>
+                    {% endif %}
+                </ul>
+                <br />
+                <div id='branding'>
+                    <h1 id='title'>
+                        <a href="{% url task.views.index %}">Task</a>
+                    </h1>
+                </div>
+            </div>
+            <div id="page-container">
+                <div id="navbar-outer">
+                    <ul id=navbar>
+                        <li><a href="{% url task.views.index">Home</a></li>
+                    </ul>
+                </div>
+                <div id='content'>
+                    {% block content %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
