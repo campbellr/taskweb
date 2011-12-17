@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title> TaskWeb | {% block title %}{% endblock %} </title>  
+        <title> Task Web | {% block title %}{% endblock %} </title>  
         {% block extrahead %} {% endblock %}
         <link rel="stylesheet" type=text/css href="{{ STATIC_URL }}task/css/common.css">
     </head> 
@@ -23,14 +23,14 @@
                 <br />
                 <div id='branding'>
                     <h1 id='title'>
-                        <a href="{% url task.views.index %}">Task</a>
+                        <a href="{% url task.views.index %}">task web</a>
                     </h1>
                 </div>
             </div>
             <div id="page-container">
                 <div id="navbar-outer">
                     <ul id=navbar>
-                        <li><a href="{% url task.views.index">Home</a></li>
+                        <li><a href="{% url task.views.index %}">Home</a> | </li>
                     </ul>
                 </div>
                 <div id='content'>

@@ -1,0 +1,3 @@
+django
+taskw
+django-tables2

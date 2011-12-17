@@ -1,1 +1,24 @@
 {% extends "base.html" %}
+
+{% block content %}
+
+<table>
+    <tr>
+        <th>ID</th>
+        <th>Pri</th>
+        <th>Description</th>
+    </tr>
+{% for task in pending %}
+    <tr class="{% cycle 'odd' 'even' %}">
+        <td class='id'>{{forloop.counter}}</td>
+        <td class='pri'>{{task.priority}}</td>
+        <td class='desc'>{{task.description}}</td>
+    </tr>
+{% empty %}
+<tr>
+    <td> No pending tasks... </td>
+ </tr>
+{% endfor %}
+</table>
+
+{% endblock content %}
