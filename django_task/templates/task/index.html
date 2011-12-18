@@ -1,24 +1,11 @@
 {% extends "base.html" %}
+{% load django_tables2 %}
+
+{% block extrahead %}
+{% endblock %}
 
 {% block content %}
 
-<table>
-    <tr>
-        <th>ID</th>
-        <th>Pri</th>
-        <th>Description</th>
-    </tr>
-{% for task in pending %}
-    <tr class="{% cycle 'odd' 'even' %}">
-        <td class='id'>{{forloop.counter}}</td>
-        <td class='pri'>{{task.priority}}</td>
-        <td class='desc'>{{task.description}}</td>
-    </tr>
-{% empty %}
-<tr>
-    <td> No pending tasks... </td>
- </tr>
-{% endfor %}
-</table>
+{% render_table table %}
 
 {% endblock content %}

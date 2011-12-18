@@ -22,6 +22,9 @@
                 </ul>
                 <br />
                 <div id='branding'>
+                    <a href="{% url task.views.index %}">
+                        <img id="logo" src="{{ STATIC_URL }}task/img/logo.png" alt=""/>
+                    </a>
                     <h1 id='title'>
                         <a href="{% url task.views.index %}">task web</a>
                     </h1>
@@ -30,7 +33,9 @@
             <div id="page-container">
                 <div id="navbar-outer">
                     <ul id=navbar>
-                        <li><a href="{% url task.views.index %}">Home</a> | </li>
+                        <li><a href="{% url task.views.index %}">Home</a></li>
+                        <li><a href="{% url task.views.add_task %}">Add Task</a></li>
+                        <li><a href="">Upload Data</a></li>
                     </ul>
                 </div>
                 <div id='content'>

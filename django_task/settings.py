@@ -94,7 +94,7 @@ SECRET_KEY = 'b%p()x1up!fw0u6f*@yywpod(ctk4)ut($+*oegql2io%@3ohv'
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
+    'django.template.loaders.eggs.Loader',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -112,6 +112,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.media',
     'django.core.context_processors.static',
     'django.contrib.auth.context_processors.auth',
+    'django.core.context_processors.request'
 )
 
 TEMPLATE_DIRS = (
@@ -128,6 +129,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_tables2',
     'task',
 )
 

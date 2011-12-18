@@ -11,6 +11,17 @@ h1 {
     font-size: 10pt
 }
 
+#branding {
+    vertical-align: middle;
+}
+
+#logo {
+    width: 50px;
+    height: 50px;
+    padding-left: 10px;
+    clear: all;
+}
+
 #accountnav {
     list-style: none;
     margin: 0;
@@ -27,7 +38,7 @@ h1 {
 
 #title {
   display: inline;
-  vertical-align: middle;
+  vertical-align: center;
   font-size: 24pt;
   font-weight: normal;
   padding: 0.4em;
@@ -53,7 +64,10 @@ h1 {
 #navbar li {
   display: inline;
   height: 30px;
-  margin-right: 14px;
+  border: 1px solid black;
+  padding: 4px;
+  padding-right: 9px;
+  padding-left: 9px;
 }
 
 #navbar a {
@@ -72,36 +86,41 @@ table {
     border-spacing: 0px;
     border-collapse: collapse;
     width: 100%;
-    border: 1px solid black;
+}
+
+table a:link, a:visited {
+    color: #5B80B2;
+    text-decoration: underline;
+    font-weight: bold;
 }
 
 th {
     font-size: 11pt;
     font-weight: bold;
-    border-style: solid;
-    border-width: 1px;
     padding: 3px;
+    width: auto;
+    text-align: left;
+    background-color: white;
 }
 
 td {
     border-width: 1px;
-    padding: 3px;
+    padding: 5px;
     text-align: justify;
 }
 
-td.id {
+td.pri, td.id, td.proj, td.tags {
     text-align: center;
-    width: auto;
+    width: 20px;
 }
 
-td.pri {
-    text-align: center;
-    width: auto;
+td.age {
+    text-align: justify;
+    width: 120px;
 }
 
 td.desc {
     text-align: justify;
-    width: 100%;
 }
 
 
