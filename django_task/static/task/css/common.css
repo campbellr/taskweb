@@ -81,6 +81,23 @@ h1 {
     padding: 0 0.8em 0.8em 0.8em;
 }
 
+#content {
+    border: 1px solid black;
+}
+
+#add_form {
+    margin: 10px;
+    font-weight: bold;
+}
+
+.field {
+    margin-bottom: 10px;
+}
+
+.label {
+    margin-bottom: 2px;
+}
+
 table {
     border-width: 1px;
     border-spacing: 0px;

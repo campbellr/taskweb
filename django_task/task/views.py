@@ -1,13 +1,12 @@
 import datetime
 
-from django.http import HttpResponse
+from django.http import HttpResponse,  HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from django.utils.safestring import mark_safe
-from django.template.defaultfilters import timesince
 
 import taskw
-import django_tables2 as tables
+
+from task import tables, forms
 
 def _reformat(task_list):
     """ Return the data in task_list formatted in a django-tables2-friendly
@@ -27,47 +26,38 @@ def _reformat(task_list):
 
     return formatted
 
-class Attr(object):
-    def __init__(self, attr):
-        self.attr = attr
-
-    def as_html(self):
-        return " ".join(["%s=\"%s\"" % (k, v) for k, v in self.attr.items()])
-
-class Column(tables.Column):
-    def __init__(self, *args, **kwargs):
-        self.attrs = Attr(kwargs.pop('attrs', {}))
-        super(Column, self).__init__(*args, **kwargs)
-
-    def render(self, value):
-        return  mark_safe("<td %s>%s</td>" % (self.attrs.as_html(), value))
-
-class DateTimeSinceColumn(Column):
-    def render(self, value):
-        value = timesince(value).split(',')[0]
-        return super(DateTimeSinceColumn, self).render(value)
-
-class TaskTable(tables.Table):
-    id = Column(verbose_name="ID", attrs={'class': 'id'})
-    project = Column(verbose_name="Proj", attrs={'class': 'proj'}, default='')
-    priority = Column(verbose_name="Pri", attrs={'class': 'pri'}, default='')
-    tags = Column(verbose_name="Tags", attrs={'class': 'tags'}, default='')
-    date = DateTimeSinceColumn(verbose_name='Age', attrs={'class': 'age'}, default='')
-    desc = Column(verbose_name="Description", attrs={'class': 'desc'})
-
-    class Meta:
-        order_by = 'id'
-        template = 'table.html'
 
 def index(request, template='task/index.html'):
     all_tasks = taskw.load_tasks()
     tasks = _reformat(all_tasks['pending'])
-    table = TaskTable(tasks, order_by=request.GET.get('sort'))
+    table = tables.TaskTable(tasks, order_by=request.GET.get('sort'))
     return render_to_response(template, {'table': table},
                               context_instance=RequestContext(request))
 
 def add_task(request, template='task/add.html'):
-    return HttpResponse("This is the 'add task' page.")
+    if request.method == 'POST':
+        form = forms.TaskForm(request.POST)
+        if form.is_valid():
+            desc = form.cleaned_data['description']
+
+            data = dict()
+            pri = form.cleaned_data['priority']
+            if pri:
+                data['priority'] = pri
+            proj = form.cleaned_data['project']
+            if proj:
+                data['project'] = proj
+            tags = form.cleaned_data['tags']
+            if tags:
+                data['tags'] = tags
+
+            taskw.task_add(desc, **data)
+            return HttpResponseRedirect('/')
+    else:
+        form = forms.TaskForm()
+
+    return render_to_response(template, {'form': form},
+                              context_instance=RequestContext(request))
 
 def done_task(request, task_id, template='task/done.html'):
     return HttpResponse("This is the 'done task %s' page." % task_id)
