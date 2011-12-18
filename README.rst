@@ -8,6 +8,9 @@ Although it currently very much in it's infancy, the project is intended to allo
 users to host a taskwarrior database for syncing with ``task merge``, as well as adding,
 editing, and closing tasks through the web.
 
+.. note::
+   ``task web`` is not yet in a usable state.
+
 Installation
 =============
 
@@ -18,6 +21,7 @@ Installation
 You can then configure it like any other django project (customize ``settings.py``, set up
 http server, etc...).
 
+
 Requirements
 ============
 
@@ -26,6 +30,16 @@ Requirements
     * `Django <http://djangoproject.com/>`_
     * `django-tables2 <https://github.com/bradleyayers/django-tables2>`_
     * `taskw <https://github.com/ralphbean/taskw>`_
+
+
+TODO
+====
+
+ * Add ability to upload (and use) a taskwarrior DB
+ * Add ability to edit tasks
+ * Add ability to mark tasks 'done'
+ * Expose uploaded db to a url for syncing with taskwarrior (``task pull``, ``task merge``)
+ * Add calendar view, and other useful taskwarrior charts
 
 
 Reporting Bugs
