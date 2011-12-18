@@ -45,4 +45,4 @@ TODO
 Reporting Bugs
 ==============
 
-Any bugs can be reported on the github `issue tracker <https://github.com/campbellr/taskweb/issues/new`_.
+Any bugs can be reported on the github `issue tracker <https://github.com/campbellr/taskweb/issues/new>`_.
