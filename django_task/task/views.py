@@ -22,17 +22,30 @@ def _reformat(task_list):
         ftask['project'] = task.get('project')
         ftask['depends'] = task.get('depends')
         ftask['tags'] = task.get('tags')
+        end = task.get('end')
+        if end:
+            ftask['end'] = datetime.datetime.fromtimestamp(int(end))
+        due = task.get('due')
+        if due:
+            ftask['due'] = datetime.datetime.fromtimestamp(int(due))
+
         formatted.append(ftask)
 
     return formatted
 
-
-def index(request, template='task/index.html'):
+def _get_tasks(status, request, template, table_class):
     all_tasks = taskw.load_tasks()
-    tasks = _reformat(all_tasks['pending'])
-    table = tables.TaskTable(tasks, order_by=request.GET.get('sort'))
+    tasks = _reformat(all_tasks[status])
+    table = table_class(tasks, order_by=request.GET.get('sort'))
     return render_to_response(template, {'table': table},
                               context_instance=RequestContext(request))
+
+
+def pending_tasks(request, template='task/index.html'):
+    return _get_tasks('pending', request, template, tables.TaskTable)
+
+def completed_tasks(request, template='task/index.html'):
+    return _get_tasks('completed', request, template, tables.CompletedTaskTable)
 
 def add_task(request, template='task/add.html'):
     if request.method == 'POST':

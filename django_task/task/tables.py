@@ -29,14 +29,39 @@ class DateTimeSinceColumn(Column):
         value = timesince(value).split(',')[0]
         return super(DateTimeSinceColumn, self).render(value)
 
+class DateTimeColumn(Column):
+    """ A column that displays the absolute date in the format
+        <month>/<day>/<year>. For example: "11/28/2011"
+    """
+    def render(self, value):
+        if value:
+            value = u"%s/%s/%s" % (value.month, value.day, value.year)
+        return super(DateTimeColumn, self).render(value)
+
+
 class TaskTable(tables.Table):
     id = Column(verbose_name="ID", attrs={'class': 'id'})
-    project = Column(verbose_name="Proj", attrs={'class': 'proj'}, default='')
+    project = Column(verbose_name="Project", attrs={'class': 'proj'}, default='')
     priority = Column(verbose_name="Pri", attrs={'class': 'pri'}, default='')
+    due = DateTimeColumn(attrs={'class': 'complete'}, default='')
     tags = Column(verbose_name="Tags", attrs={'class': 'tags'}, default='')
     date = DateTimeSinceColumn(verbose_name='Age', attrs={'class': 'age'}, default='')
     desc = Column(verbose_name="Description", attrs={'class': 'desc'})
 
     class Meta:
-        order_by = 'id'
+        order_by = '-priority'
         template = 'table.html'
+
+class CompletedTaskTable(tables.Table):
+    end = DateTimeColumn(verbose_name="Complete", attrs={'class': 'complete'})
+    project = Column(verbose_name="Project", attrs={'class': 'proj'}, default='')
+    priority = Column(verbose_name="Pri", attrs={'class': 'pri'}, default='')
+    date = DateTimeSinceColumn(verbose_name='Age', attrs={'class': 'age'}, default='')
+    desc = Column(verbose_name="Description", attrs={'class': 'desc'})
+
+    class Meta:
+        order_by = '-end'
+        template = 'table.html'
+
+
+

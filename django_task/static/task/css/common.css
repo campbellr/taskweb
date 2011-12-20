@@ -131,9 +131,9 @@ td.pri, td.id, td.proj, td.tags {
     width: 20px;
 }
 
-td.age {
+td.age, td.complete {
     text-align: justify;
-    width: 120px;
+    width: 60px;
 }
 
 td.desc {
@@ -143,6 +143,10 @@ td.desc {
 
 tr {
     font-size: 10pt;
+}
+
+tr:hover, tr.odd:hover {
+    background-color: #C6DEFF;
 }
 
 tr.odd {
