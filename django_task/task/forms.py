@@ -13,3 +13,6 @@ class TaskForm(forms.Form):
     project = forms.CharField(required=False)
     tags = forms.CharField(required=False)
 
+class TaskDbUploadForm(forms.Form):
+    completed = forms.FileField()
+    pending = forms.FileField()

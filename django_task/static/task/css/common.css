@@ -81,11 +81,8 @@ h1 {
     padding: 0 0.8em 0.8em 0.8em;
 }
 
-#content {
-    border: 1px solid black;
-}
 
-#add_form {
+#add_form, #upload_form {
     margin: 10px;
     font-weight: bold;
 }
@@ -102,7 +99,7 @@ table {
     border-width: 1px;
     border-spacing: 0px;
     border-collapse: collapse;
-    width: 100%;
+    width: auto;
 }
 
 table a:link, a:visited {

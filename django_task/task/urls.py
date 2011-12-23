@@ -5,4 +5,6 @@ urlpatterns = patterns('task.views',
         (r'^completed/$', 'completed_tasks'),
         (r'^add_task/', 'add_task'),
         (r'^done_task/(?P<task_id>\d+)/$', 'done_task'),
+        (r'^upload/$', 'upload'),
+        (r'^taskdb/(?P<filename>.*)$', 'taskdb')
         )
