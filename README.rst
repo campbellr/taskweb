@@ -12,7 +12,6 @@ editing, and closing tasks through the web.
    ``task web`` is not yet in a usable state.
 
 .. image:: http://github.com/campbellr/taskweb/raw/master/taskweb.png
-    :align: right
     :alt: taskweb screenshot
 
 Installation
@@ -39,12 +38,11 @@ Requirements
 TODO
 ====
 
- * Add ability to upload (and use) a taskwarrior DB
  * Add ability to edit tasks
  * Add ability to mark tasks 'done'
- * Expose uploaded db to a url for syncing with taskwarrior (``task pull``, ``task merge``)
  * Add calendar view, and other useful taskwarrior charts
-
+ * Add multi-user support (multiple users uploading taskwarrior data)
+ * Authentication
 
 Reporting Bugs
 ==============
