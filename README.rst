@@ -11,6 +11,10 @@ editing, and closing tasks through the web.
 .. note::
    ``task web`` is not yet in a usable state.
 
+.. image:: http://github.com/campbellr/taskweb/raw/master/taskweb.png
+    :align: right
+    :alt: taskweb screenshot
+
 Installation
 =============
 
