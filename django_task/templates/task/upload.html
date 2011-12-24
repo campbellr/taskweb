@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<form id="upload_form" action='/upload/' method='post' enctype='multipart/form-data'> 
+    {% csrf_token %}
+    {% for field in form %}
+        <div class='field'>
+            <div class='errors'>{{ field.errors }}</div>
+            <div class='label'>{{ field.label_tag}}</div>
+            <div class='input'>{{ field }}</div>
+        </div>
+    {% endfor %}
+    <p><input type='submit' value='Upload' /></p>
+</form>
+{% endblock %}

@@ -1,7 +1,10 @@
 import datetime
 import os
+import mimetypes
 
-from django.http import HttpResponse,  HttpResponseRedirect
+from django.core.servers.basehttp import FileWrapper
+from django.http import (HttpResponse,  HttpResponseRedirect, HttpResponseNotAllowed,
+                        HttpResponseNotFound, HttpResponseForbidden)
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 import settings
@@ -10,9 +13,10 @@ import taskw
 
 from task import tables, forms
 
-TASK_NAME = 'taskdb'
-TASK_ROOT = os.path.join(settings.MEDIA_ROOT, TASK_NAME)
-TASK_URL = os.path.join(settings.MEDIA_URL, TASK_NAME)
+TASK_URL = 'taskdb'
+TASK_ROOT = settings.TASKDATA_ROOT
+
+TASK_FNAMES = ('undo.data', 'completed.data', 'pending.data')
 
 def _reformat(task_list):
     """ Return the data in task_list formatted in a django-tables2-friendly
@@ -40,7 +44,7 @@ def _reformat(task_list):
     return formatted
 
 def _get_tasks(status, request, template, table_class):
-    all_tasks = taskw.load_tasks()
+    all_tasks = taskw.load_tasks(TASK_ROOT)
     tasks = _reformat(all_tasks[status])
     table = table_class(tasks, order_by=request.GET.get('sort'))
     return render_to_response(template, {'table': table, 'task_url': TASK_URL},
@@ -70,7 +74,7 @@ def add_task(request, template='task/add.html'):
             if tags:
                 data['tags'] = tags
 
-            taskw.task_add(desc, **data)
+            taskw.task_add(desc, location=TASK_ROOT, **data)
             return HttpResponseRedirect('/')
     else:
         form = forms.TaskForm()
@@ -105,5 +109,47 @@ def handle_uploaded_db(files):
         with open(destination, 'w') as f:
             for chunk in files[filename].chunks():
                 f.write(chunk)
+
+def get_taskdb(request, filename):
+    fullpath = os.path.join(settings.TASKDATA_ROOT, filename)
+    if not os.path.isfile(fullpath):
+        return HttpResponseNotFound('Not found!')
+
+    f = file(fullpath, 'r')
+    wrapper = FileWrapper(f)
+    response = HttpResponse(wrapper, mimetype=mimetypes.guess_type(filename))
+    response['Content-Length'] = os.path.getsize(fullpath)
+    return response
+
+def put_taskdb(request, filename):
+   return post_taskdb(request, filename)
+
+def post_taskdb(request, filename):
+    if filename not in TASK_FNAMES:
+        return HttpResponseForbidden('Forbidden!')
+
+    data = request.raw_post_data
+    fullpath = os.path.join(settings.TASKDATA_ROOT, filename)
+    with open(fullpath, 'w') as f:
+        f.write(data)
+
+    return HttpResponse()
+
+def taskdb(request, filename):
+    """ Serve {undo, completed, pending}.data files as requested.
+
+        I't probably better to serve outside of django, but
+        this is much more flexible for now.
+    """
+    if request.method == 'GET':
+        return get_taskdb(request, filename)
+
+    elif request.method == 'POST':
+        return post_taskdb(request, filename)
+
+    elif request.method == 'PUT':
+        return put_taskdb(request, filename)
+    else:
+        return HttpResponseNotAllowed(['GET', 'PUT', 'POST'])
 
 

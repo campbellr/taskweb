@@ -12,6 +12,9 @@ MANAGERS = ADMINS
 
 DIRNAME = os.path.dirname(__file__)
 
+# The location to store the taskwarrior database(s)
+TASKDATA_ROOT = os.path.join(DIRNAME, 'taskdb')
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2',
