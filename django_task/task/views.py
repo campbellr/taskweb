@@ -35,9 +35,13 @@ def _reformat(task_list):
         end = task.get('end')
         if end:
             ftask['end'] = datetime.datetime.fromtimestamp(int(end))
+        else:
+            ftask['end'] = None
         due = task.get('due')
         if due:
             ftask['due'] = datetime.datetime.fromtimestamp(int(due))
+        else:
+            ftask['due'] = None
 
         formatted.append(ftask)
 
@@ -87,6 +91,9 @@ def done_task(request, task_id, template='task/done.html'):
 
 def edit_task(request, task_id, template='task/edit.html'):
     return HttpResponse("This is the 'edit task %s' page." % task_id)
+
+def detail_task(request, task_id, template='task/detail.html'):
+    return HttpResponse("This is the 'detail task %s' page." % task_id)
 
 def upload(request, template='task/upload.html'):
     if request.method == "POST":
