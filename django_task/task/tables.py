@@ -51,6 +51,7 @@ class TaskTable(tables.Table):
     class Meta:
         order_by = '-priority'
         template = 'table.html'
+        empty_text = "No pending tasks..."
 
 class CompletedTaskTable(tables.Table):
     end = DateTimeColumn(verbose_name="Complete", attrs={'class': 'complete'})
@@ -62,6 +63,7 @@ class CompletedTaskTable(tables.Table):
     class Meta:
         order_by = '-end'
         template = 'table.html'
+        empty_text = "No completed tasks..."
 
 
 

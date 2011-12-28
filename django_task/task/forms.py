@@ -1,7 +1,7 @@
 from django import forms
 
 PRIORITY_CHOICES = (
-        (None, 'None'),
+        ('', None),
         ('H', 'High'),
         ('M', 'Medium'),
         ('L', 'Low')

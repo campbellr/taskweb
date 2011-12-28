@@ -27,6 +27,7 @@ def _reformat(task_list):
         ftask = dict()
         ftask['id'] = id_
         ftask['desc'] = task['description']
+        ftask['status'] = task['status']
         ftask['priority'] = task.get('priority')
         ftask['date'] = datetime.datetime.fromtimestamp(int(task['entry']))
         ftask['project'] = task.get('project')
@@ -48,8 +49,16 @@ def _reformat(task_list):
     return formatted
 
 def _get_tasks(status, request, template, table_class):
-    all_tasks = taskw.load_tasks(TASK_ROOT)
-    tasks = _reformat(all_tasks[status])
+    try:
+        all_tasks = taskw.load_tasks(TASK_ROOT)
+    except IOError:
+        all_tasks = {}
+
+    tasks = _reformat(all_tasks.get(status, []))
+    if status.lower() == 'completed':
+        # filter out deleted tasks like taskwarrior
+        tasks = [task for task in tasks if task['status'] != 'deleted']
+
     table = table_class(tasks, order_by=request.GET.get('sort'))
     return render_to_response(template, {'table': table, 'task_url': TASK_URL},
                               context_instance=RequestContext(request))
