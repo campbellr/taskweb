@@ -8,8 +8,10 @@ Although it currently very much in it's infancy, the project is intended to allo
 users to host a taskwarrior database for syncing with ``task merge``, as well as adding,
 editing, and closing tasks through the web.
 
-.. note::
-   ``task web`` is not yet in a usable state.
+*NOTE*: ``task web`` is is not in a usable state!
+
+Screenshot
+==========
 
 .. image:: http://github.com/campbellr/taskweb/raw/master/taskweb.png
     :alt: taskweb screenshot
@@ -17,12 +19,9 @@ editing, and closing tasks through the web.
 Installation
 =============
 
-``task web`` isn't yet available on pypi, but can be installed using ``setup.py install``::
-
- $ [sudo] python setup.py install
-
-You can then configure it like any other django project (customize ``settings.py``, set up
-http server, etc...).
+``task web`` isn't yet available on pypi, and ``setup.py`` doesn't work quite yet, but if you
+are willing to put up with a lot of bugs, just ``git pull`` and configure it like any other 
+django project (customize ``settings.py``, set up http server, etc...).
 
 
 Requirements
@@ -32,7 +31,8 @@ Requirements
 
     * `Django <http://djangoproject.com/>`_
     * `django-tables2 <https://github.com/bradleyayers/django-tables2>`_
-    * `taskw <https://github.com/ralphbean/taskw>`_
+    * `my fork <https://github.com/campbellr/taskw>`_ of `taskw <https://github.com/ralphbean/taskw>`_
+      (Until I attempt to merge it back, at least)
 
 
 TODO

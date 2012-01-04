@@ -7,11 +7,13 @@ from django.http import (HttpResponse,  HttpResponseRedirect, HttpResponseNotAll
                         HttpResponseNotFound, HttpResponseForbidden)
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.contrib.auth.decorators import login_required
 import settings
 
 import taskw
 
 from task import tables, forms
+from task.decorators import logged_in_or_basicauth
 
 TASK_URL = 'taskdb'
 TASK_ROOT = settings.TASKDATA_ROOT
@@ -70,6 +72,7 @@ def pending_tasks(request, template='task/index.html'):
 def completed_tasks(request, template='task/index.html'):
     return _get_tasks('completed', request, template, tables.CompletedTaskTable)
 
+@login_required
 def add_task(request, template='task/add.html'):
     if request.method == 'POST':
         form = forms.TaskForm(request.POST)
@@ -104,6 +107,7 @@ def edit_task(request, task_id, template='task/edit.html'):
 def detail_task(request, task_id, template='task/detail.html'):
     return HttpResponse("This is the 'detail task %s' page." % task_id)
 
+@login_required
 def upload(request, template='task/upload.html'):
     if request.method == "POST":
         form = forms.TaskDbUploadForm(request.POST, request.FILES)
@@ -151,6 +155,7 @@ def post_taskdb(request, filename):
 
     return HttpResponse()
 
+@logged_in_or_basicauth()
 def taskdb(request, filename):
     """ Serve {undo, completed, pending}.data files as requested.
 

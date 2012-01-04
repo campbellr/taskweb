@@ -12,9 +12,6 @@
                 <ul id="accountnav">
                     {% if user.is_authenticated %}
                         <li>Welcome, <b>{{user.username}}</b></li>
-                        {%  if user.is_staff %}
-                            <li>- <a href="{% url admin:index %}">Admin</a></li>
-                        {%  endif %}
                         <li>- <a href="{% url django.contrib.auth.views.logout %}">Log out</a></li>
                     {% else %}
                         <li><a href="{% url django.contrib.auth.views.login %}">Log in</a></li>
