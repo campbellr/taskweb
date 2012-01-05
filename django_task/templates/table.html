@@ -4,7 +4,7 @@
 <div class="table-container">
 {% endif %}
 {% block table %}
-<table{% if table.attrs %} {{ table.attrs.as_html }}{% endif %}>
+<table class='taskweb' {% if table.attrs %} {{ table.attrs.as_html }}{% endif %}>
     {% block table.thead %}
     <thead>
         <tr class="{% cycle "odd" "even" %}">

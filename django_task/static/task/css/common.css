@@ -93,20 +93,20 @@ h1 {
     margin-bottom: 2px;
 }
 
-table {
+table.taskweb {
     border-width: 1px;
     border-spacing: 0px;
     border-collapse: collapse;
     width: auto;
 }
 
-table a:link, a:visited {
+table.taskweb a:link, a:visited {
     color: #5B80B2;
     text-decoration: underline;
     font-weight: bold;
 }
 
-th {
+table.taskweb th {
     font-size: 11pt;
     font-weight: bold;
     padding: 3px;
@@ -115,32 +115,32 @@ th {
     background-color: white;
 }
 
-td {
+table.taskweb td {
     border-width: 1px;
     padding: 5px;
     text-align: justify;
 }
 
-td.pri, td.id, td.proj, td.tags {
+table.taskweb td.pri, td.id, td.proj, td.tags {
     text-align: center;
     width: 20px;
 }
 
-td.age, td.complete {
+table.taskweb td.age, td.complete {
     text-align: justify;
     width: 60px;
 }
 
-td.desc {
+table.taskweb td.desc {
     text-align: justify;
 }
 
 
-tr {
+table.taskweb tr {
     font-size: 10pt;
 }
 
-tr:hover, tr.odd:hover {
+table.taskweb tr:hover, tr.odd:hover {
     background-color: #C6DEFF;
 }
 
