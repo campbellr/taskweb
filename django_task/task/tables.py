@@ -3,12 +3,14 @@ from django.template.defaultfilters import timesince
 
 import django_tables2 as tables
 
+
 class Attr(object):
     def __init__(self, attr):
         self.attr = attr
 
     def as_html(self):
         return " ".join(["%s=\"%s\"" % (k, v) for k, v in self.attr.items()])
+
 
 class Column(tables.Column):
     """ A column that adds the ability to set attributes on the
@@ -21,6 +23,7 @@ class Column(tables.Column):
     def render(self, value):
         return  mark_safe("<td %s>%s</td>" % (self.attrs.as_html(), value))
 
+
 class DateTimeSinceColumn(Column):
     """ A column that displays the time since the given value in
         a human-friendly format. Eg: "1 day", "4 minutes", etc...
@@ -28,6 +31,7 @@ class DateTimeSinceColumn(Column):
     def render(self, value):
         value = timesince(value).split(',')[0]
         return super(DateTimeSinceColumn, self).render(value)
+
 
 class DateTimeColumn(Column):
     """ A column that displays the absolute date in the format
@@ -53,6 +57,7 @@ class TaskTable(tables.Table):
         template = 'table.html'
         empty_text = "No pending tasks..."
 
+
 class CompletedTaskTable(tables.Table):
     end = DateTimeColumn(verbose_name="Complete", attrs={'class': 'complete'})
     project = Column(verbose_name="Project", attrs={'class': 'proj'}, default='')
@@ -64,6 +69,3 @@ class CompletedTaskTable(tables.Table):
         order_by = '-end'
         template = 'table.html'
         empty_text = "No completed tasks..."
-
-
-

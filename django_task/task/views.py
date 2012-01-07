@@ -3,7 +3,8 @@ import os
 import mimetypes
 
 from django.core.servers.basehttp import FileWrapper
-from django.http import (HttpResponse,  HttpResponseRedirect, HttpResponseNotAllowed,
+from django.http import (HttpResponse,  HttpResponseRedirect,
+                        HttpResponseNotAllowed,
                         HttpResponseNotFound, HttpResponseForbidden)
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -19,6 +20,7 @@ TASK_URL = 'taskdb'
 TASK_ROOT = settings.TASKDATA_ROOT
 
 TASK_FNAMES = ('undo.data', 'completed.data', 'pending.data')
+
 
 def _reformat(task_list):
     """ Return the data in task_list formatted in a django-tables2-friendly
@@ -50,6 +52,7 @@ def _reformat(task_list):
 
     return formatted
 
+
 def _get_tasks(status, request, template, table_class):
     try:
         all_tasks = taskw.load_tasks(TASK_ROOT)
@@ -62,15 +65,18 @@ def _get_tasks(status, request, template, table_class):
         tasks = [task for task in tasks if task['status'] != 'deleted']
 
     table = table_class(tasks, order_by=request.GET.get('sort'))
-    return render_to_response(template, {'table': table, 'task_url': TASK_URL},
-                              context_instance=RequestContext(request))
+    return render_to_response(template, {'table': table,
+                         'task_url': "http://%s/taskdb/" % request.get_host()},
+                         context_instance=RequestContext(request))
 
 
 def pending_tasks(request, template='task/index.html'):
     return _get_tasks('pending', request, template, tables.TaskTable)
 
+
 def completed_tasks(request, template='task/index.html'):
     return _get_tasks('completed', request, template, tables.CompletedTaskTable)
+
 
 @login_required
 def add_task(request, template='task/add.html'):
@@ -98,14 +104,18 @@ def add_task(request, template='task/add.html'):
     return render_to_response(template, {'form': form},
                               context_instance=RequestContext(request))
 
+
 def done_task(request, task_id, template='task/done.html'):
     return HttpResponse("This is the 'done task %s' page." % task_id)
+
 
 def edit_task(request, task_id, template='task/edit.html'):
     return HttpResponse("This is the 'edit task %s' page." % task_id)
 
+
 def detail_task(request, task_id, template='task/detail.html'):
     return HttpResponse("This is the 'detail task %s' page." % task_id)
+
 
 @login_required
 def upload(request, template='task/upload.html'):
@@ -120,6 +130,7 @@ def upload(request, template='task/upload.html'):
     return render_to_response(template, {'form': form},
                               context_instance=RequestContext(request))
 
+
 def handle_uploaded_db(files):
     if not os.path.exists(TASK_ROOT):
         os.mkdir(TASK_ROOT)
@@ -129,6 +140,7 @@ def handle_uploaded_db(files):
         with open(destination, 'w') as f:
             for chunk in files[filename].chunks():
                 f.write(chunk)
+
 
 def get_taskdb(request, filename):
     fullpath = os.path.join(settings.TASKDATA_ROOT, filename)
@@ -141,8 +153,10 @@ def get_taskdb(request, filename):
     response['Content-Length'] = os.path.getsize(fullpath)
     return response
 
+
 def put_taskdb(request, filename):
-   return post_taskdb(request, filename)
+    return post_taskdb(request, filename)
+
 
 def post_taskdb(request, filename):
     if filename not in TASK_FNAMES:
@@ -154,6 +168,7 @@ def post_taskdb(request, filename):
         f.write(data)
 
     return HttpResponse()
+
 
 @logged_in_or_basicauth()
 def taskdb(request, filename):
@@ -172,5 +187,3 @@ def taskdb(request, filename):
         return put_taskdb(request, filename)
     else:
         return HttpResponseNotAllowed(['GET', 'PUT', 'POST'])
-
-
