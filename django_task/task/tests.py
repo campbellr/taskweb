@@ -1,6 +1,32 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
 
+from task.models import Task
+
+
+class TestModels(TestCase):
+    def test_create_task_no_uuid(self):
+        """ Verify that a `Task`s uuid field is automatically populated
+            when not specified.
+        """
+        # description is the only required field
+        task = Task(description='foobar')
+        task.save()
+        self.assertTrue(hasattr(task, 'uuid'))
+        self.assertNotEqual(task.uuid, None)
+
+    def test_create_task_with_uuid(self):
+        """ Verify that when instantiating a Task with a uuid specified,
+            it uses that uuid.
+        """
+        uuid = 'foobar'
+        task = Task(description='my description', uuid=uuid)
+        task.save()
+        self.assertEqual(task.uuid, uuid)
+
+    def test_mark_task_done(self):
+        pass
+
 
 class TestViews(TestCase):
     def test_pending_tasks(self):
