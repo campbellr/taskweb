@@ -1,14 +1,1 @@
-{% extends "base.html" %}
-{% load django_tables2 %}
-
-{% block extrahead %}
-{% endblock %}
-
-{% block content %}
-
-{% render_table table %}
-
-<div id='footer'>
-    <p><i>task push/pull/merge</i> url: <i>{{ task_url }}/"</i></p>
-</div>
-{% endblock content %}
+{% extends "datagrid/datagrid.html" %}

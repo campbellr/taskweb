@@ -15,6 +15,8 @@ import taskw
 
 from task import tables, forms
 from task.decorators import logged_in_or_basicauth
+from task.grids import TaskDataGrid
+from task.models import Task
 
 TASK_URL = 'taskdb'
 TASK_ROOT = settings.TASKDATA_ROOT
@@ -22,60 +24,14 @@ TASK_ROOT = settings.TASKDATA_ROOT
 TASK_FNAMES = ('undo.data', 'completed.data', 'pending.data')
 
 
-def _reformat(task_list):
-    """ Return the data in task_list formatted in a django-tables2-friendly
-        format.
-    """
-    formatted = list()
-    for id_, task in enumerate(task_list, 1):
-        ftask = dict()
-        ftask['id'] = id_
-        ftask['desc'] = task['description']
-        ftask['status'] = task['status']
-        ftask['priority'] = task.get('priority')
-        ftask['date'] = datetime.datetime.fromtimestamp(int(task['entry']))
-        ftask['project'] = task.get('project')
-        ftask['depends'] = task.get('depends')
-        ftask['tags'] = task.get('tags')
-        end = task.get('end')
-        if end:
-            ftask['end'] = datetime.datetime.fromtimestamp(int(end))
-        else:
-            ftask['end'] = None
-        due = task.get('due')
-        if due:
-            ftask['due'] = datetime.datetime.fromtimestamp(int(due))
-        else:
-            ftask['due'] = None
-
-        formatted.append(ftask)
-
-    return formatted
-
-
-def _get_tasks(status, request, template, table_class):
-    try:
-        all_tasks = taskw.load_tasks(TASK_ROOT)
-    except IOError:
-        all_tasks = {}
-
-    tasks = _reformat(all_tasks.get(status, []))
-    if status.lower() == 'completed':
-        # filter out deleted tasks like taskwarrior
-        tasks = [task for task in tasks if task['status'] != 'deleted']
-
-    table = table_class(tasks, order_by=request.GET.get('sort'))
-    return render_to_response(template, {'table': table,
-                         'task_url': "http://%s/taskdb/" % request.get_host()},
-                         context_instance=RequestContext(request))
-
-
 def pending_tasks(request, template='task/index.html'):
-    return _get_tasks('pending', request, template, tables.TaskTable)
+    return TaskDataGrid(request,
+         queryset=Task.objects.filter(status='pending')).render_to_response(template)
 
 
 def completed_tasks(request, template='task/index.html'):
-    return _get_tasks('completed', request, template, tables.CompletedTaskTable)
+    return TaskDataGrid(request,
+         queryset=Task.objects.filter(status='completed')).render_to_response(template)
 
 
 @login_required
