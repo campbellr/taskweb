@@ -34,16 +34,14 @@
 }
 
 .datagrid-header {
-  background: url("../images/datagrid/header_bg.png") repeat-x bottom left;
-  border-top: 1px #999999 solid;
-  border-bottom: 1px #999999 solid;
-  border-right: 1px #CCCCCC solid;
-  color: black;
+  width: auto;
   cursor: pointer;
+  font-size: 14px;
   font-weight: bold;
   padding: 4px;
   text-align: left;
   white-space: nowrap;
+  text-decoration: underline;
 }
 
 .datagrid-header-drag {
@@ -69,7 +67,7 @@
 }
 
 .datagrid-header:hover {
-  background: url("../images/datagrid/header_bg_primary.png") repeat-x bottom left;
+  
 }
 
 .datagrid-header:hover a {
@@ -85,37 +83,6 @@
 }
 
 
-/****************************************************************************
- * Titles
- ****************************************************************************/
-.datagrid-title,
-.datagrid-titlebox {
-  background-color: #a2bedc;
-  border-bottom: 1px #728eac solid;
-  margin: 0;
-  padding: 5px 10px 5px 5px;
-}
-
-.datagrid-titlebox h1 {
-  display: inline;
-  font-size: 120%;
-  padding-right: 10px;
-}
-
-.datagrid-titlebox ul {
-  list-style: none;
-  display: inline;
-  margin: 0;
-  padding: 0;
-}
-
-.datagrid-titlebox ul li {
-  display: inline;
-}
-
-.datagrid-titlebox ul li a {
-  color: #0000CC;
-}
 
 /****************************************************************************
  * Paginator
