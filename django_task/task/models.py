@@ -28,7 +28,7 @@ class ListField(models.CharField):
 
     def to_python(self, value):
         if not value:
-            return []
+            return ''
 
         if isinstance(value, list):
             return value

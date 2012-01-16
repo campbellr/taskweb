@@ -39,20 +39,14 @@ def add_task(request, template='task/add.html'):
     if request.method == 'POST':
         form = forms.TaskForm(request.POST)
         if form.is_valid():
-            desc = form.cleaned_data['description']
+            data = form.cleaned_data
+            task = Task(description=data.get('description'),
+                 priority=data.get('priority'),
+                 project=data.get('project'),
+                 tags=data.get('tags'),
+                 user=request.user)
 
-            data = dict()
-            pri = form.cleaned_data['priority']
-            if pri:
-                data['priority'] = pri
-            proj = form.cleaned_data['project']
-            if proj:
-                data['project'] = proj
-            tags = form.cleaned_data['tags']
-            if tags:
-                data['tags'] = tags
-
-            taskw.task_add(desc, location=TASK_ROOT, **data)
+            task.save()
             return HttpResponseRedirect('/')
     else:
         form = forms.TaskForm()

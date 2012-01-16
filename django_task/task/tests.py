@@ -43,7 +43,7 @@ class TestTaskModel(TestCase):
         user = self.create_user()
         task = Task(description='foobar', user=user)
         task.save()
-        self.assertEqual(task.tags, [])
+        self.assertEqual(task.tags, '')
 
         # single tag
         task.tags = ['django']
@@ -95,8 +95,14 @@ class TestTaskModel(TestCase):
 
 class TestViews(TestCase):
     def test_pending_tasks(self):
+        user = self.create_user()
+        task = Task(description='test, test', user=user)
+        task.save()
+        self.assertEqual(len(Task.objects.all()), 1)
+
         response = self.client.get('/pending/')
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['datagrid'].rows), 1)
 
     def test_completed_tasks(self):
         response = self.client.get('/completed/')
@@ -129,9 +135,13 @@ class TestViews(TestCase):
     def test_taskdb_PUT(self):
         self._create_user_and_login()
 
-    def _create_user_and_login(self):
-        user = User.objects.create_user('foo', 'foo@test.com', 'bar')
+    def create_user(self, username='foo', passw='baz'):
+        user = User.objects.create_user(username, 'foo@test.com', passw)
         user.save()
+        return user
+
+    def _create_user_and_login(self):
+        user = self.create_user('foo', 'bar')
         self.assertTrue(user.check_password('bar'))
         success = self.client.login(username='foo', password='bar')
         self.assertTrue(success)

@@ -1,9 +1,8 @@
 from setuptools import setup, find_packages
 
 requirements = [
-        'taskw == 0.1.8-campbellr2',
         'Django >= 1.3',
-        'django-tables2',
+        'djblets',
     ]
 
 dependency_links = [
