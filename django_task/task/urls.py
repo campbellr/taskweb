@@ -9,6 +9,6 @@ urlpatterns = patterns('task.views',
         (r'^done/(?P<task_id>\d+)/$', 'done_task'),
         (r'^edit/(?P<task_id>\d+)/$', 'edit_task'),
         (r'^detail/(?P<task_id>\d+)/$', 'detail_task'),
-        (r'^upload/$', 'upload'),
+        #(r'^upload/$', 'upload'),
         (r'^taskdb/(?P<filename>.*)$', 'taskdb')
         )

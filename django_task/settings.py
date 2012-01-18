@@ -12,6 +12,8 @@ MANAGERS = ADMINS
 
 DIRNAME = os.path.dirname(__file__)
 
+AUTH_PROFILE_MODULE = 'task.Profile'
+
 # The location to store the taskwarrior database(s)
 TASKDATA_ROOT = os.path.join(DIRNAME, 'taskdb')
 

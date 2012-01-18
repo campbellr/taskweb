@@ -1,8 +1,10 @@
+import os
+
 from django.test import TestCase
 from django.contrib.auth.models import User
 
-from task.models import Task
-
+from task.models import Task, Tag
+from task.views import parse_undo
 
 class TestTaskModel(TestCase):
     def create_user(self, username='foo', passw='baz'):
@@ -39,21 +41,34 @@ class TestTaskModel(TestCase):
         task.done()
         self.assertEqual(task.status, 'completed')
 
-    def test_task_tags(self):
+    def test_task_tags_empty(self):
         user = self.create_user()
         task = Task(description='foobar', user=user)
         task.save()
-        self.assertEqual(task.tags, '')
+        self.assertEqual(list(task.tags.all()), [])
+
+    def test_task_tags_single_tag(self):
+        user = self.create_user()
+        task = Task(description='foobar', user=user)
+        task.save()
 
         # single tag
-        task.tags = ['django']
+        tag = Tag.objects.create(tag='django')
+        task.tags.add(tag)
         task.save()
-        self.assertEqual(task.tags, ['django'])
+        self.assertEqual(list(task.tags.all()), [tag])
+
+    def test_task_tags_multiple_tags(self):
+        user = self.create_user()
+        task = Task(description='foobar', user=user)
+        task.save()
 
         # multiple tags
-        task.tags = ['spam', 'eggs']
+        tag1 = Tag.objects.create(tag='spam')
+        tag2 = Tag.objects.create(tag='eggs')
+        task.tags.add(tag1, tag2)
         task.save()
-        self.assertEqual(task.tags, ['spam', 'eggs'])
+        self.assertEqual(list(task.tags.all()), [tag1, tag2])
 
     def test_task_dependencies(self):
         user = self.create_user()
@@ -84,10 +99,11 @@ class TestTaskModel(TestCase):
                                    user=user,
                                    uuid=expected['uuid'],
                                    project=expected['project'],
-                                   tags=expected['tags'].split(','),
                                    entry=datetime.datetime.fromtimestamp(int(expected['entry'])),
                                    )
 
+        for tag in expected['tags'].split(','):
+            task.add_tag(tag)
         task.annotate(expected['annotation_%s' % int(ts)], dt)
 
         self.assertEqual(task.todict(), expected)
@@ -132,10 +148,54 @@ class TestViews(TestCase):
     def test_taskdb_POST(self):
         self._create_user_and_login()
 
-    def test_taskdb_PUT(self):
+    def test_taskdb_PUT_pending(self):
         self._create_user_and_login()
+        data = open(os.path.expanduser('~/.task/pending.data'), 'r').read()
+        response = self.client.put('/taskdb/pending.data',
+                        content_type='text/plain',
+                        data=data)
+        self.assertEqual(response.status_code, 200)
+
+    def test_taskdb_PUT_completed(self):
+        self._create_user_and_login()
+        data = open(os.path.expanduser('~/.task/completed.data'), 'r').read()
+        response = self.client.put('/taskdb/completed.data',
+                        content_type='text/plain',
+                        data=data)
+        self.assertEqual(response.status_code, 200)
+
+    def test_taskdb_PUT_undo(self):
+        self._create_user_and_login()
+        data = open(os.path.expanduser('~/.task/undo.data'), 'r').read()
+        response = self.client.put('/taskdb/undo.data',
+                        content_type='text/plain',
+                        data=data)
+        self.assertEqual(response.status_code, 200)
+
+    def test_taskdb_PUT_all(self):
+        self._create_user_and_login()
+        for fname in ['pending', 'undo', 'completed']:
+            data = open(os.path.expanduser('~/.task/%s.data' % fname), 'r').read()
+            response = self.client.put('/taskdb/%s.data' % fname,
+                        content_type='text/plain',
+                        data=data)
+            self.assertEqual(response.status_code, 200)
+
+    def test_taskdb_PUT_twice(self):
+        """ I hit a bug where tasks weren't cleared properly. This tests it.
+        """
+        for x in range(2):
+            self.test_taskdb_PUT_all()
+
+    def test_parse_undo(self):
+        parsed = parse_undo(UNDO_SAMPLE)
+        self.assertEqual(parsed, PARSED_UNDO_SAMPLE)
 
     def create_user(self, username='foo', passw='baz'):
+        users = User.objects.filter(username=username)
+        if users:
+            return users[0]
+
         user = User.objects.create_user(username, 'foo@test.com', passw)
         user.save()
         return user
@@ -145,3 +205,24 @@ class TestViews(TestCase):
         self.assertTrue(user.check_password('bar'))
         success = self.client.login(username='foo', password='bar')
         self.assertTrue(success)
+
+
+
+PARSED_UNDO_SAMPLE = [
+    {'time': '1326338657',
+      'new': '[description:"note: this is a task\&dquot;" entry:"1326338657" status:"pending" uuid:"6f34e415-2441-4058-8c11-320f5c2b2792"]'
+      },
+    {'time': '1326338708',
+      'old': '[description:"foo \&dquot;bar\&dquot;" entry:"1326250353" status:"pending" uuid:"4300e85d-9bbc-49a6-ba89-89f024bc0795"]',
+      'new': '[description:"foo \&dquot;bar\&dquot;" end:"1326338705" entry:"1326250353" status:"deleted" uuid:"4300e85d-9bbc-49a6-ba89-89f024bc0795"]'
+      }]
+
+UNDO_SAMPLE =\
+"""
+time 1326338657
+new [description:"note: this is a task\&dquot;" entry:"1326338657" status:"pending" uuid:"6f34e415-2441-4058-8c11-320f5c2b2792"]
+---
+time 1326338708
+old [description:"foo \&dquot;bar\&dquot;" entry:"1326250353" status:"pending" uuid:"4300e85d-9bbc-49a6-ba89-89f024bc0795"]
+new [description:"foo \&dquot;bar\&dquot;" end:"1326338705" entry:"1326250353" status:"deleted" uuid:"4300e85d-9bbc-49a6-ba89-89f024bc0795"]
+"""

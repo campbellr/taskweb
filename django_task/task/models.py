@@ -4,7 +4,14 @@ import time
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save
 
+PRIORITY_CHOICES = (
+        ('', None),
+        ('H', 'High'),
+        ('M', 'Medium'),
+        ('L', 'Low')
+        )
 
 def task2str(task):
     """ Return a string suitable for the taskwarrior db
@@ -21,26 +28,10 @@ def datetime2ts(dt):
     return int(time.mktime(dt.timetuple()))
 
 
-class ListField(models.CharField):
-    """ Stores a python list as a comma-separated string.
-    """
-    __metaclass__ = models.SubfieldBase
-
-    def to_python(self, value):
-        if not value:
-            return ''
-
-        if isinstance(value, list):
-            return value
-
-        if isinstance(value, str):
-            return value.split(',')
-
-    def get_prep_value(self, value):
-        if value is None:
-            return value
-
-        return ','.join(value)
+class Profile(models.Model):
+    user = models.OneToOneField(User)
+    sort_task_columns = models.CharField(max_length=256, blank=True)
+    task_columns = models.CharField(max_length=256, blank=True)
 
 
 class Undo(models.Model):
@@ -90,6 +81,13 @@ class Annotation(models.Model):
         return self.data
 
 
+class Tag(models.Model):
+    tag = models.CharField(max_length=256, unique=True)
+
+    def __unicode__(self):
+        return self.tag
+
+
 class Task(models.Model):
     """ Representation of a `taskwarrior` task.
     """
@@ -100,8 +98,8 @@ class Task(models.Model):
     end = models.DateTimeField(blank=True, null=True)
     status = models.CharField(max_length=100)
     project = models.CharField(max_length=100, blank=True, null=True)
-    tags = ListField(max_length=200, null=True, blank=True)
-    priority = models.CharField(max_length=1, null=True, blank=True)
+    tags = models.ManyToManyField(Tag, max_length=200, null=True, blank=True)
+    priority = models.CharField(choices=PRIORITY_CHOICES, max_length=1, null=True, blank=True)
     annotations = models.ManyToManyField(Annotation, null=True, blank=True)
     dependencies = models.ManyToManyField('self', symmetrical=False,
                                             null=True, blank=True)
@@ -111,17 +109,25 @@ class Task(models.Model):
         ordering = ['-entry']
 
     def __unicode__(self):
-        return self.description
+        return "<%s %s %s>" % (self.description, self.uuid, self.status)
 
     def add_tag(self, tag):
-        if tag not in self.tags:
-            self.tags.append(tag)
-            self.save()
+        if not Tag.objects.filter(tag=tag):
+            tag = Tag.objects.create(tag=tag)
+        else:
+            tag = Tag.objects.get(tag=tag)
+
+        self.tags.add(tag)
+        self.save()
 
     def remove_tag(self, tag):
-        if tag in self.tags:
-            self.tags.remove(tag)
-            self.save()
+        try:
+            tag = Tag.objects.get(tag=tag)
+        except Tag.DoesNotExist:
+            return
+
+        self.tags.remove(tag)
+        self.save()
 
     def annotate(self, note, time=None):
         annotation = Annotation.objects.create(data=note, time=time)
@@ -146,6 +152,8 @@ class Task(models.Model):
         """ Automatically populate optional fields if they haven't been
             specified in __init__.
         """
+        track = kwargs.pop('track', True)
+
         if not self.uuid:
             self.uuid = str(uuid.uuid4())
 
@@ -155,16 +163,18 @@ class Task(models.Model):
         if not self.entry:
             self.entry = datetime.datetime.now()
 
-        # add to undo table
-        data = {}
-        if self.pk:
-            old = Task.objects.get(pk=self.pk)
-            data['old'] = task2str(old.todict())
-
         super(Task, self).save(*args, **kwargs)
-        data['new'] = task2str(self.todict())
-        data['user'] = self.user
-        Undo.objects.create(**data)
+
+        if track:
+            # add to undo table
+            data = {}
+            if self.pk:
+                old = Task.objects.get(pk=self.pk)
+                data['old'] = task2str(old.todict())
+
+            data['new'] = task2str(self.todict())
+            data['user'] = self.user
+            Undo.objects.create(**data)
 
     def todict(self):
         # TODO: This is ugly, i need  to find a better way...
@@ -188,8 +198,9 @@ class Task(models.Model):
                     for annotation in value.all():
                         key = 'annotation_%s' % datetime2ts(annotation.time)
                         task[key] = annotation.data
-
                     continue
+                elif fieldname == 'tags':
+                    value = ','.join([t.tag for t in value.all()])
 
                 if value:
                     task[fieldname] = str(value)
@@ -197,11 +208,23 @@ class Task(models.Model):
         return task
 
     @classmethod
-    def serialize(cls):
+    def serialize(cls, status=None):
         """ Serialze the tasks to a string suitable for taskwarrior.
         """
+        if status is None:
+            tasks = cls.objects.order_by('entry')
+        else:
+            tasks = cls.objects.filter(status=status).order_by('entry')
+
         data = ''
-        for task in cls.objects.order_by('entry'):
+        for task in tasks:
             data += task2str(task.todict())
 
         return data
+
+
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
+
+post_save.connect(create_user_profile, sender=User)
