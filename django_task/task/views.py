@@ -1,4 +1,3 @@
-import sys
 import datetime
 
 from django.http import (HttpResponse,  HttpResponseRedirect,
@@ -95,7 +94,7 @@ def taskdict2orm(taskdata, user):
     task.save(track=False)
 
     for tag in taskdata.get('tags', '').split(','):
-        task.add_tag(tag)
+        task.add_tag(tag, track=False)
 
 
 def get_taskdb(request, filename):
@@ -109,7 +108,7 @@ def get_taskdb(request, filename):
         return HttpResponseNotFound()
 
     response = HttpResponse(taskstr, mimetype='text/plain')
-    response['Content-Length'] = sys.getsizeof(taskstr)
+    response['Content-Length'] = len(taskstr)
     return response
 
 

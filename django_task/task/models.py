@@ -46,7 +46,7 @@ class Undo(models.Model):
         ordering = ['time']
 
     def __unicode__(self):
-        return u'<Undo: %s, %, %>'
+        return u'<Undo: %s, %s, %s>' % (self.time, self.new, self.old)
 
     def save(self, *args, **kwargs):
         if not self.time:
@@ -65,6 +65,8 @@ class Undo(models.Model):
                 data += u'old %s\n' % undo.old
             data += u'new %s\n' % undo.new
             data += u'---\n'
+
+        return data
 
 
 class Annotation(models.Model):
@@ -111,23 +113,23 @@ class Task(models.Model):
     def __unicode__(self):
         return "<%s %s %s>" % (self.description, self.uuid, self.status)
 
-    def add_tag(self, tag):
+    def add_tag(self, tag, track=True):
         if not Tag.objects.filter(tag=tag):
             tag = Tag.objects.create(tag=tag)
         else:
             tag = Tag.objects.get(tag=tag)
 
         self.tags.add(tag)
-        self.save()
+        self.save(track=track)
 
-    def remove_tag(self, tag):
+    def remove_tag(self, tag, track=True):
         try:
             tag = Tag.objects.get(tag=tag)
         except Tag.DoesNotExist:
             return
 
         self.tags.remove(tag)
-        self.save()
+        self.save(track=track)
 
     def annotate(self, note, time=None):
         annotation = Annotation.objects.create(data=note, time=time)

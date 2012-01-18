@@ -3,8 +3,9 @@ import os
 from django.test import TestCase
 from django.contrib.auth.models import User
 
-from task.models import Task, Tag
-from task.views import parse_undo
+from task.models import Task, Tag, Undo
+from task.views import parse_undo, taskdict2orm
+
 
 class TestTaskModel(TestCase):
     def create_user(self, username='foo', passw='baz'):
@@ -32,6 +33,20 @@ class TestTaskModel(TestCase):
         task = Task(description='my description', uuid=uuid, user=user)
         task.save()
         self.assertEqual(task.uuid, uuid)
+
+    def test_create_task_undo(self):
+        user = self.create_user()
+        task = Task(description='foobar', user=user)
+        task.save()
+        self.assertEqual(len(Undo.objects.all()), 1)
+        task.delete()
+        self.assertEqual(len(Undo.objects.all()), 1)
+
+    def test_create_task_save_without_track(self):
+        user = self.create_user()
+        task = Task(description='foobar', user=user)
+        task.save(track=False)
+        self.assertEqual(len(Undo.objects.all()), 0)
 
     def test_mark_task_done(self):
         user = self.create_user()
@@ -140,9 +155,19 @@ class TestViews(TestCase):
     def test_add_tasks_POST_no_login(self):
         pass
 
-    def test_taskdb_GET(self):
+    def test_taskdb_GET_pending(self):
         self._create_user_and_login()
         response = self.client.get('/taskdb/pending.data')
+        self.assertEqual(response.status_code, 200)
+
+    def test_taskdb_GET_completed(self):
+        self._create_user_and_login()
+        response = self.client.get('/taskdb/completed.data')
+        self.assertEqual(response.status_code, 200)
+
+    def test_taskdb_GET_undo(self):
+        self._create_user_and_login()
+        response = self.client.get('/taskdb/undo.data')
         self.assertEqual(response.status_code, 200)
 
     def test_taskdb_POST(self):
@@ -155,6 +180,7 @@ class TestViews(TestCase):
                         content_type='text/plain',
                         data=data)
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(list(Undo.objects.all()), [])
 
     def test_taskdb_PUT_completed(self):
         self._create_user_and_login()
@@ -163,6 +189,7 @@ class TestViews(TestCase):
                         content_type='text/plain',
                         data=data)
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(list(Undo.objects.all()), [])
 
     def test_taskdb_PUT_undo(self):
         self._create_user_and_login()
@@ -171,6 +198,8 @@ class TestViews(TestCase):
                         content_type='text/plain',
                         data=data)
         self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(data, Undo.serialize())
 
     def test_taskdb_PUT_all(self):
         self._create_user_and_login()
@@ -190,6 +219,13 @@ class TestViews(TestCase):
     def test_parse_undo(self):
         parsed = parse_undo(UNDO_SAMPLE)
         self.assertEqual(parsed, PARSED_UNDO_SAMPLE)
+
+    def test_taskdict2orm(self):
+        user = self.create_user()
+        data = {'description': 'foobar', 'uuid':'sssssssss', 'status': 'pending',
+                'entry': '12345'}
+        taskdict2orm(data, user)
+        self.assertEqual(list(Undo.objects.all()), [])
 
     def create_user(self, username='foo', passw='baz'):
         users = User.objects.filter(username=username)
