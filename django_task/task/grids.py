@@ -17,9 +17,19 @@ class TagColumn(Column):
         return ', '.join([t.tag for t in value.all()])
 
 
+class ShortDateTimeSinceColumn(grids.DateTimeSinceColumn):
+    """ Similar to the default `DateTimeSinceColumn` but only
+        displays the most significant time. (eg: '1 hour ago' vs
+        '1 hour, 3 minutes ago'
+    """
+    def render_data(self, obj):
+        value = super(ShortDateTimeSinceColumn, self).render_data(obj)
+        return value.split(',')[0]
+
+
 class TaskDataGrid(grids.DataGrid):
     id_ = Column('ID', sortable=True, shrink=True, field_name='id')
-    entry = grids.DateTimeSinceColumn('Age', sortable=True)
+    entry = ShortDateTimeSinceColumn('Age', sortable=True)
     project = Column('Proj', sortable=True, shrink=True)
     tags = TagColumn('Tags', sortable=True)
     priority = Column('Pri', sortable=True, shrink=True)
