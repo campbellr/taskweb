@@ -93,3 +93,7 @@ h1 {
     margin-bottom: 2px;
 }
 
+#footer {
+    padding-top: 10px;
+    font-style: italic;
+}
