@@ -40,8 +40,8 @@ class Undo(models.Model):
     """
     user = models.ForeignKey(User)
     time = models.DateTimeField()
-    new = models.CharField(max_length=200)
-    old = models.CharField(max_length=200, blank=True, null=True)
+    new = models.TextField()
+    old = models.TextField(blank=True, null=True)
 
     class Meta:
         ordering = ['time']
