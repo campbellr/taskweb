@@ -18,7 +18,7 @@ def task2str(task):
     """ Return a string suitable for the taskwarrior db
         Extracted from `taskw` (https://github.com/ralphbean/taskw)
     """
-    return "[%s]\n" % " ".join([
+    return "[%s]" % " ".join([
         "%s:\"%s\"" % (k, v) for k, v in task.iteritems()
     ])
 
@@ -198,15 +198,15 @@ class Task(models.Model):
         if not self.entry:
             self.entry = datetime.datetime.now()
 
+        data = {}
+        if self.pk:
+            old = Task.objects.get(pk=self.pk)
+            data['old'] = task2str(old.todict())
+
         super(Task, self).save(*args, **kwargs)
 
         if track:
             # add to undo table
-            data = {}
-            if self.pk:
-                old = Task.objects.get(pk=self.pk)
-                data['old'] = task2str(old.todict())
-
             data['new'] = task2str(self.todict())
             data['user'] = self.user
             Undo.objects.create(**data)

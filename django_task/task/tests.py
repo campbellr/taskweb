@@ -39,8 +39,11 @@ class TestTaskModel(TestCase):
         task = Task(description='foobar', user=user)
         task.save()
         self.assertEqual(len(Undo.objects.all()), 1)
+        self.assertNotIn('old', Undo.serialize())
+        self.assertEqual(len(Undo.serialize().splitlines()), 3)
         task.delete()
-        self.assertEqual(len(Undo.objects.all()), 1)
+        #should we be clearing these somehow?
+        #self.assertEqual(len(Undo.objects.all()), 0)
 
     def test_create_task_save_without_track(self):
         user = self.create_user()
