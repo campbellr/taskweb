@@ -125,7 +125,7 @@ class Task(models.Model):
         ordering = ['-entry']
 
     def __unicode__(self):
-        return "<%s %s %s>" % (self.description, self.uuid, self.status)
+        return self.description
 
     @classmethod
     def fromdict(cls, d, track=False):

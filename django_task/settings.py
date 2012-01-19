@@ -118,7 +118,8 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.media',
     'django.core.context_processors.static',
     'django.contrib.auth.context_processors.auth',
-    'django.core.context_processors.request'
+    'django.core.context_processors.request',
+    'django.contrib.messages.context_processors.messages',
 )
 
 TEMPLATE_DIRS = (
@@ -137,6 +138,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'djblets.datagrid',
     'djblets.util',
+    'django.contrib.admin',
     'task',
 )
 
