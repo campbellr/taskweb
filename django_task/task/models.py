@@ -13,6 +13,7 @@ PRIORITY_CHOICES = (
         ('L', 'Low')
         )
 
+
 def task2str(task):
     """ Return a string suitable for the taskwarrior db
         Extracted from `taskw` (https://github.com/ralphbean/taskw)
@@ -53,6 +54,18 @@ class Undo(models.Model):
             self.time = datetime.datetime.now()
 
         super(Undo, self).save(*args, **kwargs)
+
+    @classmethod
+    def fromdict(cls, d):
+        undo = cls(
+                user=d['user'],
+                time=datetime.datetime.fromtimestamp(int(d['time'])),
+                old=d.get('old'),
+                new=d['new'],
+               )
+
+        undo.save()
+        return undo
 
     @classmethod
     def serialize(cls):
@@ -101,7 +114,8 @@ class Task(models.Model):
     status = models.CharField(max_length=100)
     project = models.CharField(max_length=100, blank=True, null=True)
     tags = models.ManyToManyField(Tag, max_length=200, null=True, blank=True)
-    priority = models.CharField(choices=PRIORITY_CHOICES, max_length=1, null=True, blank=True)
+    priority = models.CharField(choices=PRIORITY_CHOICES, max_length=1,
+                                null=True, blank=True)
     annotations = models.ManyToManyField(Annotation, null=True, blank=True)
     dependencies = models.ManyToManyField('self', symmetrical=False,
                                             null=True, blank=True)
@@ -112,6 +126,25 @@ class Task(models.Model):
 
     def __unicode__(self):
         return "<%s %s %s>" % (self.description, self.uuid, self.status)
+
+    @classmethod
+    def fromdict(cls, d, track=False):
+        task = cls(
+            description=d['description'],
+            uuid=d['uuid'],
+            project=d.get('project'),
+            status=d['status'],
+            entry=datetime.datetime.fromtimestamp(int(d['entry'])),
+            priority=d.get('priority'),
+            user=d['user'],
+            )
+
+        task.save(track=track)
+
+        for tag in d.get('tags', '').split(','):
+            task.add_tag(tag, track=track)
+
+        return task
 
     def add_tag(self, tag, track=True):
         if not Tag.objects.filter(tag=tag):

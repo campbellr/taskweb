@@ -1,5 +1,3 @@
-import datetime
-
 from django.http import (HttpResponse,  HttpResponseRedirect,
                         HttpResponseNotAllowed,
                         HttpResponseNotFound, HttpResponseForbidden)
@@ -13,6 +11,7 @@ from task import forms
 from task.decorators import logged_in_or_basicauth
 from task.grids import TaskDataGrid
 from task.models import Task, Undo
+from task.util import parse_undo
 import settings
 
 TASK_URL = 'taskdb'
@@ -22,13 +21,19 @@ TASK_FNAMES = ('undo.data', 'completed.data', 'pending.data')
 
 
 def pending_tasks(request, template='task/index.html'):
-    return TaskDataGrid(request,
-         queryset=Task.objects.filter(status='pending')).render_to_response(template)
+    pending = Task.objects.filter(status='pending')
+    task_url = "http://%s/taskdb/" % request.get_host()
+    grid = TaskDataGrid(request, queryset=pending)
+    return grid.render_to_response(template,
+            extra_context={'task_url': task_url})
 
 
 def completed_tasks(request, template='task/index.html'):
-    return TaskDataGrid(request,
-         queryset=Task.objects.filter(status='completed')).render_to_response(template)
+    completed = Task.objects.filter(status='completed')
+    task_url = "http://%s/taskdb/" % request.get_host()
+    grid = TaskDataGrid(request, queryset=completed)
+    return grid.render_to_response(template,
+            extra_context={'task_url': task_url})
 
 
 @login_required
@@ -80,23 +85,6 @@ def detail_task(request, task_id, template='task/detail.html'):
 #                              context_instance=RequestContext(request))
 
 
-def taskdict2orm(taskdata, user):
-    task = Task(
-            description=taskdata['description'],
-            uuid=taskdata['uuid'],
-            project=taskdata.get('project'),
-            status=taskdata['status'],
-            entry=datetime.datetime.fromtimestamp(int(taskdata['entry'])),
-            priority=taskdata.get('priority'),
-            user=user,
-            )
-
-    task.save(track=False)
-
-    for tag in taskdata.get('tags', '').split(','):
-        task.add_tag(tag, track=False)
-
-
 def get_taskdb(request, filename):
     if filename == 'pending.data':
         taskstr = Task.serialize('pending')
@@ -133,46 +121,18 @@ def post_taskdb(request, filename):
         tasks.delete()
 
         for task in parsed:
-            taskdict2orm(task, user)
+            task.update({'user': user})
+            Task.fromdict(task)
 
     elif filename == 'undo.data':
         parsed = parse_undo(data)
-        undodict2orm(parsed, user)
+        for undo_dict in parsed:
+            undo_dict.update({'user': user})
+            Undo.fromdict(undo_dict)
     else:
         return HttpResponseNotFound()
 
     return HttpResponse()
-
-
-def undodict2orm(parsed, user):
-    for undo_info in parsed:
-        undo = Undo(
-                    user=user,
-                    time=datetime.datetime.fromtimestamp(int(undo_info['time'])),
-                    old=undo_info.get('old'),
-                    new=undo_info['new'],
-                    )
-        undo.save()
-
-
-def parse_undo(data):
-    undo_list = []
-    for segment in data.split('---'):
-        parsed = {}
-        undo = [line for line in segment.splitlines() if line.strip()]
-        if not undo:
-            continue
-
-        parsed['time'] = undo[0].split(' ', 1)[1]
-        if undo[1].startswith('old'):
-            parsed['old'] = undo[1].split(' ', 1)[1]
-            parsed['new'] = undo[2].split(' ', 1)[1]
-        else:
-            parsed['new'] = undo[1].split(' ', 1)[1]
-
-        undo_list.append(parsed)
-
-    return undo_list
 
 
 @logged_in_or_basicauth()

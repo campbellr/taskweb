@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 
 from task.models import Task, Tag, Undo
-from task.views import parse_undo, taskdict2orm
+from task.util import parse_undo
 
 
 class TestTaskModel(TestCase):
@@ -123,6 +123,14 @@ class TestTaskModel(TestCase):
 
         self.assertEqual(task.todict(), expected)
 
+    def test_task_fromdict(self):
+        user = self.create_user()
+        data = {'description': 'foobar', 'uuid': 'sssssssss',
+                'status': 'pending',
+                'entry': '12345', 'user': user}
+        Task.fromdict(data)
+        self.assertEqual(list(Undo.objects.all()), [])
+
 
 class TestViews(TestCase):
     def test_pending_tasks(self):
@@ -220,12 +228,6 @@ class TestViews(TestCase):
         parsed = parse_undo(UNDO_SAMPLE)
         self.assertEqual(parsed, PARSED_UNDO_SAMPLE)
 
-    def test_taskdict2orm(self):
-        user = self.create_user()
-        data = {'description': 'foobar', 'uuid':'sssssssss', 'status': 'pending',
-                'entry': '12345'}
-        taskdict2orm(data, user)
-        self.assertEqual(list(Undo.objects.all()), [])
 
     def create_user(self, username='foo', passw='baz'):
         users = User.objects.filter(username=username)
