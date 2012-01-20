@@ -31,7 +31,7 @@ Requirements
 ``task web`` requires the following software:
 
     * `Django <http://djangoproject.com/>`_
-    * `django-tables2 <https://github.com/bradleyayers/django-tables2>`_
+    * `djblets datagrid <https://github.com/djblets/djblets>`_
     * `my fork <https://github.com/campbellr/taskw>`_ of `taskw <https://github.com/ralphbean/taskw>`_
       (Until I attempt to merge it back, at least)
 
