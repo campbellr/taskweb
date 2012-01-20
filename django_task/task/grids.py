@@ -1,3 +1,5 @@
+from django.db.models import Min
+
 from djblets.datagrid import grids
 from task.models import Task
 
@@ -9,6 +11,18 @@ class Column(grids.Column):
             return ''
 
         return value
+
+
+class IDColumn(grids.Column):
+    """ `taskwarrior` represents id in sequence starting from 1, so
+         this column emulates that by shifting the `Task` id column
+         so they start at 1.
+    """
+    def render_data(self, obj):
+        value = super(IDColumn, self).render_data(obj)
+        min_id = Task.objects.aggregate(Min('id'))['id__min']
+        print min_id
+        return value - min_id + 1
 
 
 class TagColumn(Column):
@@ -28,7 +42,7 @@ class ShortDateTimeSinceColumn(grids.DateTimeSinceColumn):
 
 
 class TaskDataGrid(grids.DataGrid):
-    id_ = Column('ID', sortable=True, shrink=True, field_name='id')
+    id_ = IDColumn('ID', sortable=True, shrink=True, field_name='id')
     entry = ShortDateTimeSinceColumn('Age', sortable=True)
     project = Column('Proj', sortable=True, shrink=True)
     tags = TagColumn('Tags', sortable=True)

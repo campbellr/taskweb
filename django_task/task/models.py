@@ -253,7 +253,7 @@ class Task(models.Model):
 
         data = ''
         for task in tasks:
-            data += task2str(task.todict())
+            data += task2str(task.todict()) + '\n'
 
         return data
 
