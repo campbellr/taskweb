@@ -5,9 +5,6 @@ requirements = [
         'djblets',
     ]
 
-dependency_links = [
-  'https://github.com/downloads/campbellr/taskw/taskw-0.1.8-campbellr2.tar.gz',
-        ]
 with open('README') as f:
     long_description = f.read()
 
@@ -15,7 +12,6 @@ setup(
         name='taskweb',
         version='0.1',
         install_requires=requirements,
-        dependency_links=dependency_links,
         description="Django-based web front-end to taskwarrior",
         long_description=long_description,
         author="Ryan Campbell",

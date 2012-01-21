@@ -8,8 +8,8 @@ Although it currently very much in it's infancy, the project is intended to allo
 users to host a taskwarrior database for syncing with ``task merge``, as well as adding,
 editing, and closing tasks through the web.
 
-*NOTE*: ``task web`` is not yet in a usable state and *may mangle your task data!* Make sure you have backups
-before testing the the task sync feature.
+**NOTE**: ``task web`` is not yet in a usable state and **may mangle your task data!** 
+Make sure you have backups before testing the the task sync feature.
 
 Screenshot
 ==========
@@ -32,8 +32,6 @@ Requirements
 
     * `Django <http://djangoproject.com/>`_
     * `djblets datagrid <https://github.com/djblets/djblets>`_
-    * `my fork <https://github.com/campbellr/taskw>`_ of `taskw <https://github.com/ralphbean/taskw>`_
-      (Until I attempt to merge it back, at least)
 
 
 TODO
@@ -43,7 +41,6 @@ TODO
  * Add ability to mark tasks 'done'
  * Add calendar view, and other useful taskwarrior charts
  * Add multi-user support (multiple users uploading taskwarrior data)
- * Authentication
 
 Reporting Bugs
 ==============

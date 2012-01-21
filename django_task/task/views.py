@@ -5,13 +5,11 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.contrib.auth.decorators import login_required
 
-from taskw.reading import parse_line
-
 from task import forms
 from task.decorators import logged_in_or_basicauth
 from task.grids import TaskDataGrid
 from task.models import Task, Undo
-from task.util import parse_undo
+from task.util import parse_undo, parse_line
 import settings
 
 TASK_URL = 'taskdb'

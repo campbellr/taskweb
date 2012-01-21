@@ -1,4 +1,22 @@
 """ Various utility methods for `taskweb` """
+import re
+
+
+# Borrowed from `taskw` (http://github.com/ralphbean/taskw)
+def parse_line(line):
+    """ Parse a single record (task) from a task database file.
+
+    I don't understand why they don't just use JSON or YAML.  But that's okay.
+
+    >>> parse_line('[description:"Make a python API for taskwarrior"]')
+    {'description': 'Make a python API for taskwarrior'}
+
+    """
+    d = {}
+    for key, value in re.findall(r'(\w+):"(.*?)"', line):
+        d[key] = value
+
+    return d
 
 
 def parse_undo(data):
