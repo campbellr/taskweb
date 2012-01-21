@@ -19,9 +19,10 @@ class IDColumn(grids.Column):
          so they start at 1.
     """
     def render_data(self, obj):
+        # This doesn't actually work unless db ids are
+        # sequential...
         value = super(IDColumn, self).render_data(obj)
         min_id = Task.objects.aggregate(Min('id'))['id__min']
-        print min_id
         return value - min_id + 1
 
 
@@ -41,13 +42,26 @@ class ShortDateTimeSinceColumn(grids.DateTimeSinceColumn):
         return value.split(',')[0]
 
 
+class DescriptionWithAnnotationColumn(Column):
+    def render_data(self, obj):
+        description = super(DescriptionWithAnnotationColumn,
+                self).render_data(obj)
+        annotations = [str(a) for a in obj.annotations.all()]
+        value = description + "<br/>"
+        for note in annotations:
+            value += "&nbsp;" * 4 + note + "<br/>"
+
+        return value
+
+
 class TaskDataGrid(grids.DataGrid):
     id_ = IDColumn('ID', sortable=True, shrink=True, field_name='id')
     entry = ShortDateTimeSinceColumn('Age', sortable=True)
     project = Column('Proj', sortable=True, shrink=True)
     tags = TagColumn('Tags', sortable=True)
     priority = Column('Pri', sortable=True, shrink=True)
-    description = Column('Description', sortable=True, expand=True)
+    description = DescriptionWithAnnotationColumn('Description', sortable=True,
+            expand=True)
     uuid = Column('uuid', sortable=True)
     user = Column('User', sortable=True, shrink=True)
     status = Column('Status', sortable=True, shrink=True)

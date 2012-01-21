@@ -93,7 +93,7 @@ class Annotation(models.Model):
         super(Annotation, self).save(*args, **kwargs)
 
     def __unicode__(self):
-        return self.data
+        return u"%s %s" % (self.time.strftime('%m/%d/%Y'), self.data)
 
 
 class Tag(models.Model):
@@ -141,8 +141,23 @@ class Task(models.Model):
 
         task.save(track=track)
 
+        # add the tags
         for tag in d.get('tags', '').split(','):
             task.add_tag(tag, track=track)
+
+        # add the annotations
+        annotations = []
+        for k, v in d.items():
+            if k.startswith('annotation'):
+                note = {}
+                note['note'] = v
+                ts = int(k.split('_')[1])
+                note['time'] = datetime.datetime.fromtimestamp(ts)
+                annotations.append(note)
+
+        for note in annotations:
+            note.update({'track': track})
+            task.annotate(**note)
 
         return task
 
@@ -164,10 +179,10 @@ class Task(models.Model):
         self.tags.remove(tag)
         self.save(track=track)
 
-    def annotate(self, note, time=None):
+    def annotate(self, note=None, time=None, track=True):
         annotation = Annotation.objects.create(data=note, time=time)
         self.annotations.add(annotation)
-        self.save()
+        self.save(track=track)
 
     def add_dependency(self, task):
         if isinstance(task, str):
