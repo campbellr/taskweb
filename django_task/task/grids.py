@@ -4,6 +4,9 @@ from djblets.datagrid import grids
 from task.models import Task
 
 import re
+# let's find URLs in the annotation and convert them into
+# clickable links --dan
+url_pattern = re.compile(r"(^|[\n ])(([\w]+?://[\w\#$%&~.\-;:=,?@\[\]+]*)(/[\w\#$%&~/.\-;:=,?@\[\]+]*)?)", re.IGNORECASE | re.DOTALL)
 
 class Column(grids.Column):
     def render_data(self, obj):
@@ -45,9 +48,6 @@ class ShortDateTimeSinceColumn(grids.DateTimeSinceColumn):
 
 class DescriptionWithAnnotationColumn(Column):
     def render_data(self, obj):
-        # let's find URLs in the annotation and convert them into
-        # clickable links --dan
-        url_pattern = re.compile(r"(^|[\n ])(([\w]+?://[\w\#$%&~.\-;:=,?@\[\]+]*)(/[\w\#$%&~/.\-;:=,?@\[\]+]*)?)", re.IGNORECASE | re.DOTALL)
         description = super(DescriptionWithAnnotationColumn,
                             self).render_data(obj)
         annotations = [str(a) for a in obj.annotations.all()]
