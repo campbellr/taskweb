@@ -1,12 +1,9 @@
 from django.db.models import Min
+from django.utils.html import urlize
 
 from djblets.datagrid import grids
 from task.models import Task
 
-import re
-# let's find URLs in the annotation and convert them into
-# clickable links --dan
-url_pattern = re.compile(r"(^|[\n ])(([\w]+?://[\w\#$%&~.\-;:=,?@\[\]+]*)(/[\w\#$%&~/.\-;:=,?@\[\]+]*)?)", re.IGNORECASE | re.DOTALL)
 
 class Column(grids.Column):
     def render_data(self, obj):
@@ -53,8 +50,7 @@ class DescriptionWithAnnotationColumn(Column):
         annotations = [str(a) for a in obj.annotations.all()]
         value = description + "<br/>"
         for note in annotations:
-            note = url_pattern.sub(r'\1<a href="\2" target="_blank">\2</a>',
-                                   note)
+            note = urlize(note)
             value += "&nbsp;" * 4 + note + "<br/>"
 
         return value
