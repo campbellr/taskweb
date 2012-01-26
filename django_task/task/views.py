@@ -5,11 +5,13 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.contrib.auth.decorators import login_required
 
+from taskw import decode_task
+
 from task import forms
 from task.decorators import logged_in_or_basicauth
 from task.grids import TaskDataGrid
 from task.models import Task, Undo
-from task.util import parse_undo, parse_line
+from task.util import parse_undo
 import settings
 
 TASK_URL = 'taskdb'
@@ -110,7 +112,7 @@ def post_taskdb(request, filename):
     data = request.raw_post_data
 
     if filename in ['pending.data', 'completed.data']:
-        parsed = [parse_line(line) for line in data.splitlines()]
+        parsed = [decode_task(line) for line in data.splitlines()]
         if filename == 'pending.data':
             tasks = Task.objects.filter(status='pending', user=user)
         elif filename == 'completed.data':

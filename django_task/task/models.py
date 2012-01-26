@@ -6,21 +6,14 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 
+from taskw import encode_task
+
 PRIORITY_CHOICES = (
         ('', None),
         ('H', 'High'),
         ('M', 'Medium'),
         ('L', 'Low')
         )
-
-
-def task2str(task):
-    """ Return a string suitable for the taskwarrior db
-        Extracted from `taskw` (https://github.com/ralphbean/taskw)
-    """
-    return "[%s]" % " ".join([
-        "%s:\"%s\"" % (k, v) for k, v in task.iteritems()
-    ])
 
 
 def datetime2ts(dt):
@@ -75,8 +68,8 @@ class Undo(models.Model):
         for undo in cls.objects.all():
             data += u'time %s\n' % int(datetime2ts(undo.time))
             if undo.old:
-                data += u'old %s\n' % undo.old
-            data += u'new %s\n' % undo.new
+                data += u'old %s' % undo.old
+            data += u'new %s' % undo.new
             data += u'---\n'
 
         return data
@@ -216,13 +209,13 @@ class Task(models.Model):
         data = {}
         if self.pk:
             old = Task.objects.get(pk=self.pk)
-            data['old'] = task2str(old.todict())
+            data['old'] = encode_task(old.todict())
 
         super(Task, self).save(*args, **kwargs)
 
         if track:
             # add to undo table
-            data['new'] = task2str(self.todict())
+            data['new'] = encode_task(self.todict())
             data['user'] = self.user
             Undo.objects.create(**data)
 
@@ -268,7 +261,7 @@ class Task(models.Model):
 
         data = ''
         for task in tasks:
-            data += task2str(task.todict()) + '\n'
+            data += encode_task(task.todict())
 
         return data
 

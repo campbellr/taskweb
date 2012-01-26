@@ -3,6 +3,7 @@ from setuptools import setup, find_packages
 requirements = [
         'Django >= 1.3',
         'djblets',
+        'taskw>0.3.0',
     ]
 
 with open('README') as f:
@@ -10,7 +11,7 @@ with open('README') as f:
 
 setup(
         name='taskweb',
-        version='0.1',
+        version='0.2',
         install_requires=requirements,
         description="Django-based web front-end to taskwarrior",
         long_description=long_description,
