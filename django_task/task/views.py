@@ -12,7 +12,7 @@ from task.decorators import logged_in_or_basicauth
 from task.grids import TaskDataGrid
 from task.models import Task, Undo
 from task.util import parse_undo
-import settings
+from django.conf import settings
 
 TASK_URL = 'taskdb'
 TASK_ROOT = settings.TASKDATA_ROOT
