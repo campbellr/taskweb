@@ -32,7 +32,7 @@ Requirements
 
     * `Django <http://djangoproject.com/>`_
     * `djblets datagrid <https://github.com/djblets/djblets>`_
-
+    * `taskw <https://github.com/ralphbean/taskw>`_
 
 TODO
 ====
