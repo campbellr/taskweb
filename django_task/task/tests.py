@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 
 from task.models import Task, Tag, Undo
 from task.util import parse_undo
-from task.grids import IDColumn
+from task.grids import IDColumn, DescriptionWithAnnotationColumn
 
 
 class TestGrids(TestCase):
@@ -30,6 +30,21 @@ class TestGrids(TestCase):
 
         value = column.render_data(Task.objects.get(id=3))
         self.assertEqual(value, 1)
+
+    def test_description_column(self):
+        from django.utils.html import urlize
+
+        annotation_str = 'testing urls: google.com'
+        user = self.create_user()
+        column = DescriptionWithAnnotationColumn('description',
+                field_name='description')
+        task = Task.objects.create(description='testing',
+                                user=user)
+
+        task.annotate(annotation_str)
+
+        value = column.render_data(Task.objects.get(id=1))
+        self.assertIn(urlize(annotation_str), value)
 
 
 class TestTaskModel(TestCase):
