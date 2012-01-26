@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<form id="upload_form" action='{% url task.views.upload %}upload/' method='post' enctype='multipart/form-data'> 
+<form id="upload_form" action='{% url task.views.upload %}' method='post' enctype='multipart/form-data'> 
     {% csrf_token %}
     {% for field in form %}
         <div class='field'>
