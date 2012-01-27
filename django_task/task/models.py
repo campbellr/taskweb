@@ -160,29 +160,43 @@ class Task(models.Model):
         else:
             tag = Tag.objects.get(tag=tag)
 
+        old = encode_task(self.todict())
         self.tags.add(tag)
-        self.save(track=track)
+        new = encode_task(self.todict())
+
+        if track:
+            Undo.objects.create(old=old, new=new, user=self.user)
 
     def remove_tag(self, tag, track=True):
         try:
             tag = Tag.objects.get(tag=tag)
         except Tag.DoesNotExist:
             return
-
+        old = encode_task(self.todict())
         self.tags.remove(tag)
-        self.save(track=track)
+        new = encode_task(self.todict())
+        if track:
+            Undo.objects.create(old=old, new=new, user=self.user)
 
     def annotate(self, note=None, time=None, track=True):
         annotation = Annotation.objects.create(data=note, time=time)
+        old = encode_task(self.todict())
         self.annotations.add(annotation)
-        self.save(track=track)
+        new = encode_task(self.todict())
+        if track:
+            Undo.objects.create(old=old, new=new, user=self.user)
 
-    def add_dependency(self, task):
+    def add_dependency(self, task, track=True):
         if isinstance(task, str):
             # a uuid?
             task = Task.get(uuid=task)
 
+        old = encode_task(self.todict())
         self.dependencies.add(task)
+        new = encode_task(self.todict())
+
+        if track:
+            Undo.objects.create(old=old, new=new, user=self.user)
 
     def done(self):
         """ Mark a task as completed.
@@ -207,17 +221,32 @@ class Task(models.Model):
             self.entry = datetime.datetime.now()
 
         data = {}
-        if self.pk:
+        is_dirty = self._is_dirty()
+        if self.pk and is_dirty:
             old = Task.objects.get(pk=self.pk)
             data['old'] = encode_task(old.todict())
 
         super(Task, self).save(*args, **kwargs)
 
-        if track:
+        if track and is_dirty:
             # add to undo table
             data['new'] = encode_task(self.todict())
             data['user'] = self.user
             Undo.objects.create(**data)
+
+    def _is_dirty(self):
+        """ Return True if the data in the model is 'dirty', or
+            not flushed to the db.
+        """
+        if not self.pk:
+            return True
+
+        db_obj = Task.objects.get(pk=self.pk)
+        for field in self._meta.local_fields:
+            if getattr(self, field.name) != getattr(db_obj, field.name):
+                return True
+
+        return False
 
     def todict(self):
         # TODO: This is ugly, i need  to find a better way...

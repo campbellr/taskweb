@@ -14,10 +14,10 @@ def parse_undo(data):
 
         parsed['time'] = undo[0].split(' ', 1)[1]
         if undo[1].startswith('old'):
-            parsed['old'] = undo[1].split(' ', 1)[1]
-            parsed['new'] = undo[2].split(' ', 1)[1]
+            parsed['old'] = undo[1].split(' ', 1)[1] + "\n"
+            parsed['new'] = undo[2].split(' ', 1)[1] + "\n"
         else:
-            parsed['new'] = undo[1].split(' ', 1)[1]
+            parsed['new'] = undo[1].split(' ', 1)[1] + "\n"
 
         undo_list.append(parsed)
 

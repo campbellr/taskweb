@@ -85,6 +85,39 @@ class TestTaskModel(TestCase):
         #should we be clearing these somehow?
         #self.assertEqual(len(Undo.objects.all()), 0)
 
+    def test_edit_task_undo(self):
+        user = self.create_user()
+        task = Task(description='foobar', user=user)
+        task.save()
+        task.annotate('annotation')
+        self.assertEqual(len(Undo.objects.all()), 2)
+        self.assertIn('old', Undo.serialize())
+        # 'old' shouldn't have an annotation
+        new_undo = Undo.objects.get(pk=2)
+        self.assertNotIn('annotation_', new_undo.old)
+        self.assertEqual(len(Undo.serialize().splitlines()), 7)
+        self.assertNotIn('annotation_', Undo.serialize().splitlines()[4])
+
+    def test_task_saving_without_data_change(self):
+        """ Make sure that saving a task twice without
+            a change in data doesn't create duplicate Undo's
+        """
+        user = self.create_user()
+        task = Task(description='foobar', user=user)
+        task.save()
+        task.save()
+        self.assertEqual(len(Undo.objects.all()), 1)
+
+    def test_task_is_dirty(self):
+        user = self.create_user()
+        task = Task(description='foobar', user=user)
+        self.assertTrue(task._is_dirty())
+        task.save()
+        self.assertFalse(task._is_dirty())
+        task.description = 'foobar2'
+        self.assertTrue(task._is_dirty())
+
+
     def test_create_task_save_without_track(self):
         user = self.create_user()
         task = Task(description='foobar', user=user)
@@ -272,6 +305,11 @@ class TestViews(TestCase):
                         data=data)
             self.assertEqual(response.status_code, 200)
 
+        #for fname in ['undo']: # others won't work without ordereddict
+        #    actual = self.client.get('/taskdb/%s.data' % fname).content
+        #    expected = open(os.path.expanduser('~/.task/%s.data' % fname), 'r').read()
+        #    self.assertEqual(expected, actual)
+
     def test_taskdb_PUT_twice(self):
         """ I hit a bug where tasks weren't cleared properly. This tests it.
         """
@@ -300,11 +338,11 @@ class TestViews(TestCase):
 
 PARSED_UNDO_SAMPLE = [
     {'time': '1326338657',
-      'new': '[description:"note: this is a task\&dquot;" entry:"1326338657" status:"pending" uuid:"6f34e415-2441-4058-8c11-320f5c2b2792"]'
+      'new': '[description:"note: this is a task\&dquot;" entry:"1326338657" status:"pending" uuid:"6f34e415-2441-4058-8c11-320f5c2b2792"]\n'
       },
     {'time': '1326338708',
-      'old': '[description:"foo \&dquot;bar\&dquot;" entry:"1326250353" status:"pending" uuid:"4300e85d-9bbc-49a6-ba89-89f024bc0795"]',
-      'new': '[description:"foo \&dquot;bar\&dquot;" end:"1326338705" entry:"1326250353" status:"deleted" uuid:"4300e85d-9bbc-49a6-ba89-89f024bc0795"]'
+      'old': '[description:"foo \&dquot;bar\&dquot;" entry:"1326250353" status:"pending" uuid:"4300e85d-9bbc-49a6-ba89-89f024bc0795"]\n',
+      'new': '[description:"foo \&dquot;bar\&dquot;" end:"1326338705" entry:"1326250353" status:"deleted" uuid:"4300e85d-9bbc-49a6-ba89-89f024bc0795"]\n'
       }]
 
 UNDO_SAMPLE =\

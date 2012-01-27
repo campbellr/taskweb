@@ -125,6 +125,7 @@ def post_taskdb(request, filename):
             Task.fromdict(task)
 
     elif filename == 'undo.data':
+        Undo.objects.all().delete()
         parsed = parse_undo(data)
         for undo_dict in parsed:
             undo_dict.update({'user': user})
