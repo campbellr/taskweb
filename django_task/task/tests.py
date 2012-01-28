@@ -1,7 +1,8 @@
+""" Various tests for taskweb
+"""
 import os
 
 from django.test import TestCase
-from django.utils import unittest
 from django.contrib.auth.models import User
 
 from task.models import Task, Tag, Undo
@@ -116,7 +117,6 @@ class TestTaskModel(TestCase):
         self.assertFalse(task._is_dirty())
         task.description = 'foobar2'
         self.assertTrue(task._is_dirty())
-
 
     def test_create_task_save_without_track(self):
         user = self.create_user()
@@ -283,32 +283,27 @@ class TestViews(TestCase):
     def test_taskdb_PUT_undo(self):
         self._create_user_and_login()
         data = open(os.path.expanduser('~/.task/undo.data'), 'r').read()
-        response = self.client.put('/taskdb/undo.data',
+        expected_parsed = parse_undo(data)
+
+        post_response = self.client.put('/taskdb/undo.data',
                         content_type='text/plain',
                         data=data)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(post_response.status_code, 200)
 
-        # this doesn't work, maybe use ordereddict?
-        #expected = data.split('---')
-        #actual = Undo.serialize().split('---')
-        #self.assertEqual(len(expected), len(actual))
+        get_response = self.client.get('/taskdb/undo.data')
 
-        #for i in range(len(expected)):
-        #    self.assertEqual(expected[i], actual[i])
+        actual_parsed = parse_undo(get_response.content)
+        self.assertEqual(expected_parsed, actual_parsed)
 
     def test_taskdb_PUT_all(self):
         self._create_user_and_login()
         for fname in ['pending', 'undo', 'completed']:
-            data = open(os.path.expanduser('~/.task/%s.data' % fname), 'r').read()
+            path = os.path.expanduser('~/.task/%s.data' % fname)
+            data = open(path, 'r').read()
             response = self.client.put('/taskdb/%s.data' % fname,
                         content_type='text/plain',
                         data=data)
             self.assertEqual(response.status_code, 200)
-
-        #for fname in ['undo']: # others won't work without ordereddict
-        #    actual = self.client.get('/taskdb/%s.data' % fname).content
-        #    expected = open(os.path.expanduser('~/.task/%s.data' % fname), 'r').read()
-        #    self.assertEqual(expected, actual)
 
     def test_taskdb_PUT_twice(self):
         """ I hit a bug where tasks weren't cleared properly. This tests it.
