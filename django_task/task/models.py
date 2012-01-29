@@ -140,7 +140,11 @@ class Task(models.Model):
     def fromdict(cls, d, track=False):
         due = d.get('due')
         if due is not None:
-            due = datetime.datetime.fromtimestamp(int(d['due']))
+            due = datetime.datetime.fromtimestamp(int(due))
+
+        end = d.get('end')
+        if end is not None:
+            end = datetime.datetime.fromtimestamp(int(end))
 
         task = cls(
             description=d['description'],
@@ -149,6 +153,7 @@ class Task(models.Model):
             status=d['status'],
             entry=datetime.datetime.fromtimestamp(int(d['entry'])),
             due=due,
+            end=end,
             priority=d.get('priority'),
             user=d['user'],
             )
