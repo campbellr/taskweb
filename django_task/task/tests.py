@@ -212,6 +212,20 @@ class TestTaskModel(TestCase):
         data.pop('user')
         self.assertEqual(data, task.todict())
 
+    def test_task_fromdict_optional_due(self):
+        user = self.create_user()
+        data = {'description': 'foobar', 'uuid': 'sssssssss',
+                'status': 'pending',
+                'entry': '12345',
+                'due': '45678',
+                'user': user,
+                'annotation_1324076995': 'this is an annotation',
+                }
+        task = Task.fromdict(data)
+        self.assertEqual(list(Undo.objects.all()), [])
+        data.pop('user')
+        self.assertEqual(data, task.todict())
+
 
 class TestViews(TestCase):
     def test_pending_tasks(self):

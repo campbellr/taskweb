@@ -59,6 +59,7 @@ class DescriptionWithAnnotationColumn(Column):
 class TaskDataGrid(grids.DataGrid):
     id_ = IDColumn('ID', sortable=True, shrink=True, field_name='id')
     entry = ShortDateTimeSinceColumn('Age', sortable=True)
+    due = grids.DateTimeColumn('Due', sortable=True)
     project = Column('Proj', sortable=True, shrink=True)
     tags = TagColumn('Tags', sortable=True)
     priority = Column('Pri', sortable=True, shrink=True)
@@ -72,6 +73,6 @@ class TaskDataGrid(grids.DataGrid):
         super(TaskDataGrid, self).__init__(request, queryset=queryset, **kwargs)
         self.default_sort = ['-id_']
         self.default_columns = ['id_', 'project', 'priority', 'tags', 'entry',
-                                'description']
+                                'due', 'description']
         self.profile_sort_field = 'sort_task_columns'
         self.profile_columns_field = 'task_columns'

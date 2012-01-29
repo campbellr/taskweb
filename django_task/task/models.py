@@ -16,6 +16,21 @@ PRIORITY_CHOICES = (
         )
 
 
+def undo(func):
+    """ A decorator that wraps a given function to track the before
+        and after states in the Undo table.
+    """
+    def _decorator(self, *args, **kwargs):
+        track = kwargs.pop('track', True)
+        old = encode_task(self.todict())
+        func(self, *args, **kwargs)
+        new = encode_task(self.todict())
+        if track and new != old:
+            Undo.objects.create(old=old, new=new, user=self.user)
+
+    return _decorator
+
+
 def datetime2ts(dt):
     """ Convert a `datetime` object to unix timestamp (seconds since epoch).
     """
@@ -103,6 +118,7 @@ class Task(models.Model):
     uuid = models.CharField(max_length=64, unique=True)
     description = models.TextField()
     entry = models.DateTimeField()
+    due = models.DateTimeField(blank=True, null=True)
     end = models.DateTimeField(blank=True, null=True)
     status = models.CharField(max_length=100)
     project = models.CharField(max_length=100, blank=True, null=True)
@@ -122,12 +138,17 @@ class Task(models.Model):
 
     @classmethod
     def fromdict(cls, d, track=False):
+        due = d.get('due')
+        if due is not None:
+            due = datetime.datetime.fromtimestamp(int(d['due']))
+
         task = cls(
             description=d['description'],
             uuid=d['uuid'],
             project=d.get('project'),
             status=d['status'],
             entry=datetime.datetime.fromtimestamp(int(d['entry'])),
+            due=due,
             priority=d.get('priority'),
             user=d['user'],
             )
@@ -154,49 +175,35 @@ class Task(models.Model):
 
         return task
 
-    def add_tag(self, tag, track=True):
+    @undo
+    def add_tag(self, tag):
         if not Tag.objects.filter(tag=tag):
             tag = Tag.objects.create(tag=tag)
         else:
             tag = Tag.objects.get(tag=tag)
 
-        old = encode_task(self.todict())
         self.tags.add(tag)
-        new = encode_task(self.todict())
 
-        if track:
-            Undo.objects.create(old=old, new=new, user=self.user)
-
-    def remove_tag(self, tag, track=True):
+    @undo
+    def remove_tag(self, tag):
         try:
             tag = Tag.objects.get(tag=tag)
         except Tag.DoesNotExist:
             return
-        old = encode_task(self.todict())
         self.tags.remove(tag)
-        new = encode_task(self.todict())
-        if track:
-            Undo.objects.create(old=old, new=new, user=self.user)
 
-    def annotate(self, note=None, time=None, track=True):
+    @undo
+    def annotate(self, note=None, time=None):
         annotation = Annotation.objects.create(data=note, time=time)
-        old = encode_task(self.todict())
         self.annotations.add(annotation)
-        new = encode_task(self.todict())
-        if track:
-            Undo.objects.create(old=old, new=new, user=self.user)
 
+    @undo
     def add_dependency(self, task, track=True):
         if isinstance(task, str):
             # a uuid?
             task = Task.get(uuid=task)
 
-        old = encode_task(self.todict())
         self.dependencies.add(task)
-        new = encode_task(self.todict())
-
-        if track:
-            Undo.objects.create(old=old, new=new, user=self.user)
 
     def done(self):
         """ Mark a task as completed.
@@ -258,7 +265,7 @@ class Task(models.Model):
 
             value = getattr(self, fieldname)
             if value:
-                if fieldname in ['end', 'entry']:
+                if fieldname in ['end', 'entry', 'due']:
                     value = int(datetime2ts(value))
                 elif isinstance(value, list):
                     value = ','.join(value)
