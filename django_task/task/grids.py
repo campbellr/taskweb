@@ -60,7 +60,7 @@ class TaskDataGrid(grids.DataGrid):
     id_ = IDColumn('ID', sortable=True, shrink=True, field_name='id')
     entry = ShortDateTimeSinceColumn('Age', sortable=True)
     due = grids.DateTimeColumn('Due', sortable=True)
-    due = grids.DateTimeColumn('Completed', sortable=True)
+    end = grids.DateTimeColumn('Completed', sortable=True)
     project = Column('Proj', sortable=True, shrink=True)
     tags = TagColumn('Tags', sortable=True)
     priority = Column('Pri', sortable=True, shrink=True)
