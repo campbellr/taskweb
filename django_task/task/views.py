@@ -42,14 +42,12 @@ def add_task(request, template='task/add.html'):
         form = forms.TaskForm(request.POST)
         if form.is_valid():
             data = form.cleaned_data
-            task = Task(description=data.get('description'),
-                 priority=data.get('priority'),
-                 project=data.get('project'),
-                 user=request.user)
-
-            task.save()
-            for tag in data.get('tags', '').split(','):
-                task.add_tag(tag)
+            Task.fromdict({'description': data.get('description'),
+                           'priority': data.get('priority'),
+                           'project': data.get('project'),
+                           'user': request.user,
+                           'tags': data.get('tags'),
+                          }, track=True)
 
             return HttpResponseRedirect('/')
     else:

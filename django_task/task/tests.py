@@ -5,9 +5,19 @@ import os
 from django.test import TestCase
 from django.contrib.auth.models import User
 
-from task.models import Task, Tag, Undo
+from task.models import Task, Tag, Undo, Priority
 from task.util import parse_undo
 from task.grids import IDColumn, DescriptionWithAnnotationColumn
+from task import forms
+
+
+class TestForms(TestCase):
+    def test_task_form(self):
+        d = {'priority': 'H', 'description': 'foobar'}
+        form = forms.TaskForm(d)
+        self.assertTrue(form.is_valid())
+        d.update({'tags': '', 'project': ''})
+        self.assertEqual(form.cleaned_data, d)
 
 
 class TestGrids(TestCase):
@@ -112,10 +122,33 @@ class TestTaskModel(TestCase):
     def test_task_is_dirty(self):
         user = self.create_user()
         task = Task(description='foobar', user=user)
+        self.assertItemsEqual(task._get_dirty_fields().keys(), ['user', 'description'])
         self.assertTrue(task._is_dirty())
         task.save()
         self.assertFalse(task._is_dirty())
+        self.assertItemsEqual(task._get_dirty_fields().keys(), [])
         task.description = 'foobar2'
+        self.assertItemsEqual(task._get_dirty_fields().keys(), ['description'])
+        self.assertTrue(task._is_dirty())
+
+    def test_task_is_dirty_foreign_key(self):
+        user = self.create_user()
+        task = Task(description='foobar', user=user)
+        self.assertTrue(task._is_dirty())
+        task.save()
+        self.assertFalse(task._is_dirty())
+        task.priority = Priority.objects.create(weight=1)
+        self.assertItemsEqual(task._get_dirty_fields().keys(), ['priority'])
+        self.assertTrue(task._is_dirty())
+
+    def test_task_is_dirty_m2m(self):
+        user = self.create_user()
+        task = Task(description='foobar', user=user)
+        self.assertTrue(task._is_dirty())
+        task.save()
+        self.assertFalse(task._is_dirty())
+        task.tags.add(Tag.objects.create(tag='foobar'))
+        self.assertItemsEqual(task._get_dirty_fields().keys(), ['tags'])
         self.assertTrue(task._is_dirty())
 
     def test_create_task_save_without_track(self):
@@ -180,17 +213,20 @@ class TestTaskModel(TestCase):
                     'uuid': '31ae59d3-7c9c-4418-ae8f-25ba123e072a',
                     'description': 'task description',
                     'project': 'test',
+                    'priority': 'H',
                     'status': 'pending',
                     'tags': 'tag1,tag2',
                     'annotation_%s' % int(ts): u'annotation desc',
                     'entry': '12345',
                     }
         user = self.create_user()
+        priority = Priority(weight=3)
         task = Task.objects.create(description='task description',
                                    user=user,
                                    uuid=expected['uuid'],
                                    project=expected['project'],
                                    entry=datetime.datetime.fromtimestamp(int(expected['entry'])),
+                                   priority=priority,
                                    )
 
         for tag in expected['tags'].split(','):
@@ -205,9 +241,80 @@ class TestTaskModel(TestCase):
                 'status': 'pending',
                 'entry': '12345',
                 'user': user,
-                'annotation_1324076995': 'this is an annotation',
+                'annotation_1324076995': u'this is an annotation',
+                'priority': 'H',
                 }
         task = Task.fromdict(data)
+
+        # ensure the data is in the db, not just the task
+        # object from above
+        task = Task.objects.all()[0]
+        self.assertEqual(list(Undo.objects.all()), [])
+        data.pop('user')
+        self.assertEqual(data, task.todict())
+
+    def test_task_fromdict_track(self):
+        user = self.create_user()
+        data = {'description': 'foobar', 'uuid': 'sssssssss',
+                'status': 'pending',
+                'entry': '12345',
+                'user': user,
+                'annotation_1324076995': u'this is an annotation',
+                'priority': 'H',
+                }
+
+        task = Task.fromdict(data, track=True)
+
+        # ensure the data is in the db, not just the task
+        # object from above
+        task = Task.objects.all()[0]
+
+        # see reasoning in the add_tasks_POST test
+        self.assertEqual(Undo.objects.count(), 2)
+
+        # this is a brand new task, the firts undo shouldn't
+        # have an 'old' field.
+        self.assertEqual(Undo.objects.all()[0].old, None)
+        data.pop('user')
+        self.assertEqual(data, task.todict())
+
+        undo2 = Undo.objects.all()[1]
+        self.assertNotEqual(undo2.old, undo2.new)
+
+    def test_task_fromdict_priority_empty_string(self):
+        user = self.create_user()
+        data = {'description': 'foobar', 'uuid': 'sssssssss',
+                'status': 'pending',
+                'entry': '12345',
+                'user': user,
+                'annotation_1324076995': u'this is an annotation',
+                'priority': '',
+                }
+        task = Task.fromdict(data)
+
+        # ensure the data is in the db, not just the task
+        # object from above
+        task = Task.objects.all()[0]
+        self.assertEqual(list(Undo.objects.all()), [])
+        data.pop('user')
+        data.pop('priority')
+        self.assertEqual(data, task.todict())
+
+    def test_task_fromdict_unicode(self):
+        user = self.create_user()
+        data = {'description': u'foobar', 'uuid': u'sssssssss',
+                'status': u'pending',
+                'entry': u'12345',
+                'user': user,
+                'annotation_1324076995': u'this is an annotation',
+                'priority': u'H',
+                }
+
+        task = Task.fromdict(data)
+
+        # ensure the data is in the db, not just the task
+        # object from above
+        task = Task.objects.all()[0]
         self.assertEqual(list(Undo.objects.all()), [])
         data.pop('user')
         self.assertEqual(data, task.todict())
@@ -267,7 +374,31 @@ class TestViews(TestCase):
         self.assertRedirects(response, '/accounts/login/?next=/add/')
 
     def test_add_tasks_POST(self):
-        pass
+        self._create_user_and_login()
+        post_data = {'description': 'foobar',
+                     'priority': 'H',
+                     'tags': 'tag1,tag2',
+                     'project': 'projectX',
+                    }
+        self.assertEqual(len(Task.objects.all()), 0)
+        response = self.client.post('/add/', post_data)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(len(Task.objects.all()), 1)
+        task = Task.objects.all()[0]
+        taskdict = task.todict()
+        # uuid and entry are auto-generated, don't
+        # compare with them
+        taskdict.pop('uuid')
+        taskdict.pop('entry')
+        taskdict.pop('status')
+        self.assertEqual(post_data, taskdict)
+
+        # 2 undo objects: 1 for adding task, 1 for adding
+        # relations (tags, priority, etc...
+        # I'd rather have 1, but this is easier
+        self.assertEqual(Undo.objects.count(), 2)
+        self.assertEqual(Undo.objects.all()[0].old, None)
+        self.assertNotEqual(Undo.objects.all()[1].new, None)
 
     def test_add_tasks_POST_no_login(self):
         pass

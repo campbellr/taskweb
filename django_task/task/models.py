@@ -6,14 +6,22 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 
-from taskw import encode_task
+from taskw import encode_task as _encode_task
 
 PRIORITY_CHOICES = (
-        ('', None),
-        ('H', 'High'),
-        ('M', 'Medium'),
-        ('L', 'Low')
+        (0, None),
+        (1, 'L'),
+        (2, 'M'),
+        (3, 'H')
         )
+
+PRIORITY_MAP = dict((k, v) for (k, v) in PRIORITY_CHOICES)
+PRIORITY_MAP_R = dict((v, k) for (k, v) in PRIORITY_CHOICES)
+
+
+def encode_task(d):
+    d.pop('user', None)
+    return _encode_task(d)
 
 
 def undo(func):
@@ -22,11 +30,14 @@ def undo(func):
     """
     def _decorator(self, *args, **kwargs):
         track = kwargs.pop('track', True)
-        old = encode_task(self.todict())
-        func(self, *args, **kwargs)
-        new = encode_task(self.todict())
-        if track and new != old:
-            Undo.objects.create(old=old, new=new, user=self.user)
+        if track:
+            old = encode_task(self.todict())
+            func(self, *args, **kwargs)
+            new = encode_task(self.todict())
+            if new != old:
+                Undo.objects.create(old=old, new=new, user=self.user)
+        else:
+            func(self, *args, **kwargs)
 
     return _decorator
 
@@ -35,6 +46,19 @@ def datetime2ts(dt):
     """ Convert a `datetime` object to unix timestamp (seconds since epoch).
     """
     return int(time.mktime(dt.timetuple()))
+
+
+class Priority(models.Model):
+    weight = models.PositiveSmallIntegerField(choices=PRIORITY_CHOICES, unique=True)
+
+    class Meta:
+        ordering = ['-weight']
+
+    def __unicode__(self):
+        return self.get_weight_display()
+
+    def to_taskw(self):
+        return dict(PRIORITY_CHOICES)[self.weight]
 
 
 class Profile(models.Model):
@@ -111,7 +135,40 @@ class Tag(models.Model):
         return self.tag
 
 
-class Task(models.Model):
+class DirtyFieldsMixin(object):
+    """ Mixin for Models to track whether a model is 'dirty'.
+    """
+    def __init__(self, *args, **kwargs):
+        self._original_state = self._as_dict()
+
+    def _as_dict(self):
+        return self._todict()
+
+    def _get_dirty_fields(self):
+        new_state = self._as_dict()
+
+        if not self.pk:
+            return new_state
+
+        missing = object()
+        result = {}
+        for key, value in new_state.iteritems():
+            if value != self._original_state.get(key, missing):
+                result[key] = value
+
+        return result
+
+    def _is_dirty(self):
+        """ Return True if the data in the model is 'dirty', or
+            not flushed to the db.
+        """
+        if self._get_dirty_fields():
+            return True
+
+        return False
+
+
+class Task(models.Model, DirtyFieldsMixin):
     """ Representation of a `taskwarrior` task.
     """
     user = models.ForeignKey(User)
@@ -123,8 +180,7 @@ class Task(models.Model):
     status = models.CharField(max_length=100)
     project = models.CharField(max_length=100, blank=True, null=True)
     tags = models.ManyToManyField(Tag, max_length=200, null=True, blank=True)
-    priority = models.CharField(choices=PRIORITY_CHOICES, max_length=1,
-                                null=True, blank=True)
+    priority = models.ForeignKey(Priority, null=True, blank=True)
     annotations = models.ManyToManyField(Annotation, null=True, blank=True)
     dependencies = models.ManyToManyField('self', symmetrical=False,
                                             null=True, blank=True)
@@ -132,6 +188,10 @@ class Task(models.Model):
     class Meta:
         get_latest_by = 'entry'
         ordering = ['-entry']
+
+    def __init__(self, *args, **kwargs):
+        models.Model.__init__(self, *args, **kwargs)
+        DirtyFieldsMixin.__init__(self)
 
     def __unicode__(self):
         return self.description
@@ -146,23 +206,30 @@ class Task(models.Model):
         if end is not None:
             end = datetime.datetime.fromtimestamp(int(end))
 
+        entry = d.get('entry')
+        if entry is not None:
+            entry = datetime.datetime.fromtimestamp(int(entry))
+
         task = cls(
             description=d['description'],
-            uuid=d['uuid'],
+            uuid=d.get('uuid'),
             project=d.get('project'),
-            status=d['status'],
-            entry=datetime.datetime.fromtimestamp(int(d['entry'])),
+            status=d.get('status'),
+            entry=entry,
             due=due,
             end=end,
-            priority=d.get('priority'),
             user=d['user'],
             )
 
+        # add the priority
+        task.set_priority(d.get('priority'), track=False)
+
+        # we have to save before we can add ManyToMany
         task.save(track=track)
 
         # add the tags
         for tag in d.get('tags', '').split(','):
-            task.add_tag(tag, track=track)
+            task.add_tag(tag, track=False)
 
         # add the annotations
         annotations = []
@@ -175,10 +242,27 @@ class Task(models.Model):
                 annotations.append(note)
 
         for note in annotations:
-            note.update({'track': track})
+            note.update({'track': False})
             task.annotate(**note)
 
+        task.save(track=track)
+
         return task
+
+    @undo
+    def set_priority(self, priority):
+        if not priority:
+            return
+
+        elif isinstance(priority, (str, unicode)):
+            priority = PRIORITY_MAP_R[priority]
+
+        if not Priority.objects.filter(weight=priority):
+            pri = Priority.objects.create(weight=priority)
+        else:
+            pri = Priority.objects.get(weight=priority)
+
+        self.priority = pri
 
     @undo
     def add_tag(self, tag):
@@ -203,7 +287,7 @@ class Task(models.Model):
         self.annotations.add(annotation)
 
     @undo
-    def add_dependency(self, task, track=True):
+    def add_dependency(self, task):
         if isinstance(task, str):
             # a uuid?
             task = Task.get(uuid=task)
@@ -235,8 +319,8 @@ class Task(models.Model):
         data = {}
         is_dirty = self._is_dirty()
         if self.pk and is_dirty:
-            old = Task.objects.get(pk=self.pk)
-            data['old'] = encode_task(old.todict())
+            old = self._original_state
+            data['old'] = encode_task(old)
 
         super(Task, self).save(*args, **kwargs)
 
@@ -246,36 +330,26 @@ class Task(models.Model):
             data['user'] = self.user
             Undo.objects.create(**data)
 
-    def _is_dirty(self):
-        """ Return True if the data in the model is 'dirty', or
-            not flushed to the db.
-        """
-        if not self.pk:
-            return True
+        self._original_state = self._as_dict()
 
-        db_obj = Task.objects.get(pk=self.pk)
-        for field in self._meta.local_fields:
-            if getattr(self, field.name) != getattr(db_obj, field.name):
-                return True
-
-        return False
-
-    def todict(self):
+    def _todict(self):
         # TODO: This is ugly, i need  to find a better way...
         task = {}
         for fieldname in self._meta.get_all_field_names():
-            if fieldname in ['task', 'user', 'id']:
+            if fieldname in ['task', 'id']:
                 # skip these fields
                 continue
 
-            value = getattr(self, fieldname)
+            try:
+                value = getattr(self, fieldname)
+            except ValueError:
+                value = None
+
             if value:
                 if fieldname in ['end', 'entry', 'due']:
                     value = int(datetime2ts(value))
                 elif isinstance(value, list):
                     value = ','.join(value)
-                elif fieldname == 'user':
-                    continue
                 elif fieldname == 'dependencies':
                     value = ','.join([t.uuid for t in value.all()])
                 elif fieldname == 'annotations':
@@ -290,6 +364,11 @@ class Task(models.Model):
                     task[fieldname] = str(value)
 
         return task
+
+    def todict(self):
+        d = self._todict()
+        d.pop('user', None)  # not a valid field for taskwarrior
+        return d
 
     @classmethod
     def serialize(cls, status=None):

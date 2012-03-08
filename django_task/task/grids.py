@@ -65,7 +65,7 @@ class TaskDataGrid(grids.DataGrid):
     tags = TagColumn('Tags', sortable=True)
     priority = Column('Pri', sortable=True, shrink=True)
     description = DescriptionWithAnnotationColumn('Description', sortable=True,
-            expand=True)
+                                                  expand=True)
     uuid = Column('uuid', sortable=True)
     user = Column('User', sortable=True, shrink=True)
     status = Column('Status', sortable=True, shrink=True)
