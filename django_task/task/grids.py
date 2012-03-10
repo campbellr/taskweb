@@ -47,7 +47,7 @@ class DescriptionWithAnnotationColumn(Column):
     def render_data(self, obj):
         description = super(DescriptionWithAnnotationColumn,
                             self).render_data(obj)
-        annotations = [str(a) for a in obj.annotations.all()]
+        annotations = [str(a) for a in obj.annotations.all().order_by('time')]
         value = description + "<br/>"
         for note in annotations:
             note = urlize(note)
