@@ -72,7 +72,7 @@ class TaskDataGrid(grids.DataGrid):
 
     def __init__(self, request, queryset=Task.objects.all(), **kwargs):
         super(TaskDataGrid, self).__init__(request, queryset=queryset, **kwargs)
-        self.default_sort = ['-id_']
+        self.default_sort = ['priority', 'id_']
         self.default_columns = ['id_', 'project', 'priority', 'tags', 'entry',
                                 'due', 'description']
         self.profile_sort_field = 'sort_task_columns'
