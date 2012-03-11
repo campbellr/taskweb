@@ -5,7 +5,7 @@ import os
 from django.test import TestCase
 from django.contrib.auth.models import User
 
-from task.models import Task, Tag, Undo, Priority
+from task.models import Task, Tag, Undo, Priority, Project
 from task.util import parse_undo
 from task.grids import IDColumn, DescriptionWithAnnotationColumn
 from task import forms
@@ -220,11 +220,12 @@ class TestTaskModel(TestCase):
                     'entry': '12345',
                     }
         user = self.create_user()
-        priority = Priority(weight=3)
+        priority = Priority.objects.create(weight=3)
+        project = Project.objects.create(name=expected['project'])
         task = Task.objects.create(description='task description',
                                    user=user,
                                    uuid=expected['uuid'],
-                                   project=expected['project'],
+                                   project=project,
                                    entry=datetime.datetime.fromtimestamp(int(expected['entry'])),
                                    priority=priority,
                                    )

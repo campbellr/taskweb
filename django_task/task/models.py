@@ -135,6 +135,13 @@ class Tag(models.Model):
         return self.tag
 
 
+class Project(models.Model):
+    name = models.CharField(max_length=256, unique=True)
+
+    def __unicode__(self):
+        return self.name
+
+
 class DirtyFieldsMixin(object):
     """ Mixin for Models to track whether a model is 'dirty'.
     """
@@ -178,7 +185,7 @@ class Task(models.Model, DirtyFieldsMixin):
     due = models.DateTimeField(blank=True, null=True)
     end = models.DateTimeField(blank=True, null=True)
     status = models.CharField(max_length=100)
-    project = models.CharField(max_length=100, blank=True, null=True)
+    project = models.ForeignKey(Project, blank=True, null=True)
     tags = models.ManyToManyField(Tag, max_length=200, null=True, blank=True)
     priority = models.ForeignKey(Priority, null=True, blank=True)
     annotations = models.ManyToManyField(Annotation, null=True, blank=True)
@@ -213,7 +220,6 @@ class Task(models.Model, DirtyFieldsMixin):
         task = cls(
             description=d['description'],
             uuid=d.get('uuid'),
-            project=d.get('project'),
             status=d.get('status'),
             entry=entry,
             due=due,
@@ -223,6 +229,9 @@ class Task(models.Model, DirtyFieldsMixin):
 
         # add the priority
         task.set_priority(d.get('priority'), track=False)
+
+        # add the project
+        task.set_project(d.get('project'), track=False)
 
         # we have to save before we can add ManyToMany
         task.save(track=track)
@@ -263,6 +272,19 @@ class Task(models.Model, DirtyFieldsMixin):
             pri = Priority.objects.get(weight=priority)
 
         self.priority = pri
+
+    @undo
+    def set_project(self, project):
+        if not project:
+            self.project = None
+            return
+
+        if not Project.objects.filter(name=project):
+            proj = Project.objects.create(name=project)
+        else:
+            proj = Project.objects.get(name=project)
+
+        self.project = proj
 
     @undo
     def add_tag(self, tag):
