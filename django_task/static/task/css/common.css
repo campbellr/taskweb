@@ -75,6 +75,12 @@ h1 {
   text-decoration: none;
 }
 
+#sidebar-outer {
+    margin: 5px;
+    float: left;
+    background-color: #99CCFF 
+}
+
 #page-container {
     padding: 0 0.8em 0.8em 0.8em;
 }

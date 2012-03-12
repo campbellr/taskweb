@@ -4,6 +4,8 @@ import os
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
+INTERNAL_IPS = ('127.0.0.1',)
+
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
 )
@@ -109,6 +111,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.transaction.TransactionMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 )
 
 ROOT_URLCONF = 'django_task.urls'
@@ -140,6 +143,7 @@ INSTALLED_APPS = (
     'djblets.util',
     'django.contrib.admin',
     'task',
+    'debug_toolbar',
 )
 
 # A sample logging configuration. The only tangible logging

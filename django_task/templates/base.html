@@ -29,16 +29,40 @@
             </div>
             <div id="page-container">
                 <div id="navbar-outer">
+                    {% block navbar %}
                     <ul id=navbar>
                         <li><a href="{% url task.views.pending_tasks %}">Pending</a></li>
                         <li><a href="{% url task.views.completed_tasks %}">Completed</a></li>
                         <li><a href="{% url task.views.add_task %}">Add Task</a></li>
                         <li><a href="">Statistics</a></li>
                     </ul>
+                    {% endblock navbar %}
                 </div>
-                <div id='content'>
-                    {% block content %}{% endblock %}
-                </div>
+                <div id="content-container">
+                    <div id="sidebar-outer">
+                        {% block sidebar %}
+                        {% if projects %}
+                            <h1>Projects</h1>
+                            <ul id="projects-list">
+                                {% for project in projects %}
+                                    <li><a href="{{ project.url }}">{{ project.name }}</a></li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                        {% if tags %}
+                            <ul id="projects-list">
+                                {% for tag in tags %}
+                                    <li><a href="{{ tag.url }}">{{ tag.name }}</a></li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+
+                        {% endblock sidebar %}
+                    </div>
+                    <div id='content'>
+                        {% block content %}{% endblock %}
+                    </div>
+               </div>
             </div>
         </div>
     </body>
