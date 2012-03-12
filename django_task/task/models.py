@@ -178,7 +178,7 @@ class DirtyFieldsMixin(object):
 class Task(models.Model, DirtyFieldsMixin):
     """ Representation of a `taskwarrior` task.
     """
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, null=True)
     uuid = models.CharField(max_length=64, unique=True)
     description = models.TextField()
     entry = models.DateTimeField()

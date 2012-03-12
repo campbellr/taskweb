@@ -1,9 +1,12 @@
+import logging
+
 from django.http import (HttpResponse,  HttpResponseRedirect,
                         HttpResponseNotAllowed,
                         HttpResponseNotFound, HttpResponseForbidden)
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.contrib.auth.decorators import login_required
+from django.utils.html import escape
 
 from taskw import decode_task
 
@@ -39,22 +42,42 @@ def completed_tasks(request, template='task/index.html'):
 @login_required
 def add_task(request, template='task/add.html'):
     if request.method == 'POST':
-        form = forms.TaskForm(request.POST)
+        task = Task(user=request.user)
+        form = forms.TaskForm(request.POST, instance=task)
         if form.is_valid():
-            data = form.cleaned_data
-            Task.fromdict({'description': data.get('description'),
-                           'priority': data.get('priority'),
-                           'project': data.get('project'),
-                           'user': request.user,
-                           'tags': data.get('tags'),
-                          }, track=True)
-
+            form.save()
             return HttpResponseRedirect('/')
     else:
-        form = forms.TaskForm()
+        form = forms.TaskForm(initial={'user': request.user})
 
     return render_to_response(template, {'form': form},
                               context_instance=RequestContext(request))
+
+
+@login_required
+def add_tag(request):
+    return add_model(request, forms.TagForm, 'tags')
+
+
+@login_required
+def add_project(request):
+    return add_model(request, forms.ProjectForm, 'project')
+
+
+def add_model(request, form_cls, name, template="popup.html"):
+    if request.method == 'POST':
+        form = form_cls(request.POST)
+        if form.is_valid():
+            new_obj = form.save()
+            return HttpResponse('<script type="text/javascript">'
+                                'opener.dismissAddAnotherPopup(window, "%s", "%s");'
+                                '</script>' %
+                                (escape(new_obj._get_pk_val()), escape(new_obj)))
+    else:
+        form = form_cls()
+
+    page_context = {'form': form, 'field': name}
+    return render_to_response("popup.html", page_context, context_instance=RequestContext(request))
 
 
 def done_task(request, task_id, template='task/done.html'):

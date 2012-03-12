@@ -1,20 +1,25 @@
 from django import forms
 
-PRIORITY_CHOICES = (
-        ('', None),
-        ('H', 'High'),
-        ('M', 'Medium'),
-        ('L', 'Low')
-        )
+from task.models import Task, Tag, Project
+from task import widgets
 
 
-class TaskForm(forms.Form):
-    description = forms.CharField()
-    priority = forms.ChoiceField(choices=PRIORITY_CHOICES, required=False)
-    project = forms.CharField(required=False)
-    tags = forms.CharField(required=False)
+class TaskForm(forms.ModelForm):
+    class Meta:
+        model = Task
+        exclude = ('entry', 'uuid', 'end', 'status', 'annotations')
+        widgets = {
+                    'project': widgets.SelectWithPopUp,
+                    'tags': widgets.MultipleSelectWithPopUp,
+                    'due': widgets.JQueryDateWidget,
+                  }
 
 
-class TaskDbUploadForm(forms.Form):
-    completed = forms.FileField()
-    pending = forms.FileField()
+class TagForm(forms.ModelForm):
+    class Meta:
+        model = Tag
+
+
+class ProjectForm(forms.ModelForm):
+    class Meta:
+        model = Project

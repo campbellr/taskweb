@@ -11,21 +11,43 @@ from task.grids import IDColumn, DescriptionWithAnnotationColumn
 from task import forms
 
 
-class TestForms(TestCase):
-    def test_task_form(self):
-        d = {'priority': 'H', 'description': 'foobar'}
-        form = forms.TaskForm(d)
-        self.assertTrue(form.is_valid())
-        d.update({'tags': '', 'project': ''})
-        self.assertEqual(form.cleaned_data, d)
-
-
-class TestGrids(TestCase):
+class TaskTestCase(TestCase):
     def create_user(self, username='foo', passw='baz'):
+        users = User.objects.filter(username=username)
+        if users:
+            return users[0]
+
         user = User.objects.create_user(username, 'foo@test.com', passw)
         user.save()
         return user
 
+
+class TestForms(TaskTestCase):
+    def test_task_form(self):
+        task = Task(user=self.create_user())
+        d = {'priority': 'H', 'description': 'foobar'}
+        form = forms.TaskForm(d, instance=task)
+        self.assertTrue(form.is_valid())
+        d.update({'tags': '', 'project': ''})
+        task = form.save()
+        self.assertEqual(d, task.todict())
+
+    def test_tag_form(self):
+        d = {'tag': 'foobar'}
+        form = forms.TagForm(d)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertEqual(len(Tag.objects.all()), 1)
+
+    def test_project_form(self):
+        d = {'name': 'project1'}
+        form = forms.ProjectForm(d)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertEqual(len(Project.objects.all()), 1)
+
+
+class TestGrids(TaskTestCase):
     def test_idcolumn(self):
         user = self.create_user()
         column = IDColumn('id_', field_name='id')
@@ -58,11 +80,9 @@ class TestGrids(TestCase):
         self.assertIn(urlize(annotation_str), value)
 
 
-class TestTaskModel(TestCase):
-    def create_user(self, username='foo', passw='baz'):
-        user = User.objects.create_user(username, 'foo@test.com', passw)
-        user.save()
-        return user
+class TestTaskModel(TaskTestCase):
+    def test_create_task_no_params(self):
+        task = Task()
 
     def test_create_task_no_uuid(self):
         """ Verify that a `Task`s uuid field is automatically populated
@@ -349,7 +369,7 @@ class TestTaskModel(TestCase):
         self.assertEqual(data, task.todict())
 
 
-class TestViews(TestCase):
+class TestViews(TaskTestCase):
     def test_pending_tasks(self):
         user = self.create_user()
         task = Task(description='test, test', user=user)
@@ -366,13 +386,13 @@ class TestViews(TestCase):
 
     def test_add_task_GET(self):
         self._create_user_and_login()
-        response = self.client.get('/add/')
+        response = self.client.get('/add/task/')
         self.assertEqual(response.status_code, 200)
 
     def test_add_tasks_GET_no_login(self):
-        response = self.client.get('/add/')
+        response = self.client.get('/add/task/')
         # should redirect ot login screen
-        self.assertRedirects(response, '/accounts/login/?next=/add/')
+        self.assertRedirects(response, '/accounts/login/?next=/add/task/')
 
     def test_add_tasks_POST(self):
         self._create_user_and_login()
@@ -382,7 +402,7 @@ class TestViews(TestCase):
                      'project': 'projectX',
                     }
         self.assertEqual(len(Task.objects.all()), 0)
-        response = self.client.post('/add/', post_data)
+        response = self.client.post('/add/task/', post_data)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(len(Task.objects.all()), 1)
         task = Task.objects.all()[0]
@@ -475,20 +495,27 @@ class TestViews(TestCase):
         parsed = parse_undo(UNDO_SAMPLE)
         self.assertEqual(parsed, PARSED_UNDO_SAMPLE)
 
-    def create_user(self, username='foo', passw='baz'):
-        users = User.objects.filter(username=username)
-        if users:
-            return users[0]
-
-        user = User.objects.create_user(username, 'foo@test.com', passw)
-        user.save()
-        return user
-
     def _create_user_and_login(self):
         user = self.create_user('foo', 'bar')
         self.assertTrue(user.check_password('bar'))
         success = self.client.login(username='foo', password='bar')
         self.assertTrue(success)
+
+    def test_add_project_POST(self):
+        self._create_user_and_login()
+        data = {'name': 'taskweb'}
+        response = self.client.post('/add/project/', data)
+        self.assertEqual(response.status_code, 200)
+
+    def test_add_tag_POST(self):
+        self._create_user_and_login()
+        data = {'tag': u'tag1'}
+        response = self.client.post('/add/tag/', data)
+        self.assertEqual(response.status_code, 200)
+        tags = Tag.objects.all()
+        self.assertEqual(len(tags), 1)
+        tag = tags[0]
+        self.assertEqual(tag.tag, u'tag1')
 
 
 PARSED_UNDO_SAMPLE = [

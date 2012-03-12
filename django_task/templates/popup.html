@@ -1,0 +1,13 @@
+<html>
+  <head>
+    <title>Add {{ field }}</title>
+    <script src="{{ STATIC_URL }}admin/js/RelatedObjectLookups.js"></script>
+  </head>
+  <body>
+    <h1>Add {{ field }}</h1>
+    <form id="add_{{ field }}" method="POST" action="/add/{{ field }}/">{% csrf_token %}
+        {{ form.as_p }}
+        <p><input type="submit" /> | <a href="javascript:window.close()">Cancel</a></p>
+     </form>
+  </body>
+</html>
