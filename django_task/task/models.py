@@ -9,13 +9,13 @@ from django.db.models.signals import post_save
 from taskw import encode_task as _encode_task
 
 PRIORITY_CHOICES = (
-        (0, None),
+        (0, ''),  # unprioritized
         (1, 'L'),
         (2, 'M'),
         (3, 'H')
         )
 
-PRIORITY_MAP = dict((k, v) for (k, v) in PRIORITY_CHOICES)
+PRIORITY_MAP = dict(PRIORITY_CHOICES)
 PRIORITY_MAP_R = dict((v, k) for (k, v) in PRIORITY_CHOICES)
 
 
@@ -49,13 +49,14 @@ def datetime2ts(dt):
 
 
 class Priority(models.Model):
-    weight = models.PositiveSmallIntegerField(choices=PRIORITY_CHOICES, unique=True)
+    weight = models.PositiveSmallIntegerField(choices=PRIORITY_CHOICES,
+                                              unique=True)
 
     class Meta:
         ordering = ['-weight']
 
     def __unicode__(self):
-        return self.get_weight_display()
+        return unicode(self.get_weight_display())
 
     def to_taskw(self):
         return dict(PRIORITY_CHOICES)[self.weight]
@@ -261,16 +262,12 @@ class Task(models.Model, DirtyFieldsMixin):
     @undo
     def set_priority(self, priority):
         if not priority:
-            return
+            priority = ''
 
-        elif isinstance(priority, (str, unicode)):
+        if isinstance(priority, (str, unicode)):
             priority = PRIORITY_MAP_R[priority]
 
-        if not Priority.objects.filter(weight=priority):
-            pri = Priority.objects.create(weight=priority)
-        else:
-            pri = Priority.objects.get(weight=priority)
-
+        pri, created = Priority.objects.get_or_create(weight=priority)
         self.priority = pri
 
     @undo
@@ -279,20 +276,12 @@ class Task(models.Model, DirtyFieldsMixin):
             self.project = None
             return
 
-        if not Project.objects.filter(name=project):
-            proj = Project.objects.create(name=project)
-        else:
-            proj = Project.objects.get(name=project)
-
+        proj, created = Project.objects.get_or_create(name=project)
         self.project = proj
 
     @undo
     def add_tag(self, tag):
-        if not Tag.objects.filter(tag=tag):
-            tag = Tag.objects.create(tag=tag)
-        else:
-            tag = Tag.objects.get(tag=tag)
-
+        tag, created = Tag.objects.get_or_create(tag=tag)
         self.tags.add(tag)
 
     @undo
@@ -310,7 +299,7 @@ class Task(models.Model, DirtyFieldsMixin):
 
     @undo
     def add_dependency(self, task):
-        if isinstance(task, str):
+        if isinstance(task, (str, unicode)):
             # a uuid?
             task = Task.get(uuid=task)
 
@@ -337,6 +326,9 @@ class Task(models.Model, DirtyFieldsMixin):
 
         if not self.entry:
             self.entry = datetime.datetime.now()
+
+        if not self.priority:
+            self.priority = Priority.objects.get_or_create(weight=0)[0]
 
         data = {}
         is_dirty = self._is_dirty()
@@ -382,7 +374,7 @@ class Task(models.Model, DirtyFieldsMixin):
                 elif fieldname == 'tags':
                     value = ','.join([t.tag for t in value.all()])
 
-                if value:
+                if value and str(value):
                     task[fieldname] = str(value)
 
         return task

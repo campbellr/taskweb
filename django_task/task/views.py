@@ -45,7 +45,10 @@ def add_task(request, template='task/add.html'):
         task = Task(user=request.user)
         form = forms.TaskForm(request.POST, instance=task)
         if form.is_valid():
-            form.save()
+            task = form.save()
+            # silly extra save to create
+            # undo object for m2m fields
+            task.save()
             return HttpResponseRedirect('/')
     else:
         form = forms.TaskForm(initial={'user': request.user})

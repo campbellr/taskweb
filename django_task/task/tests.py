@@ -24,13 +24,23 @@ class TaskTestCase(TestCase):
 
 class TestForms(TaskTestCase):
     def test_task_form(self):
-        task = Task(user=self.create_user())
-        d = {'priority': 'H', 'description': 'foobar'}
-        form = forms.TaskForm(d, instance=task)
-        self.assertTrue(form.is_valid())
-        d.update({'tags': '', 'project': ''})
+        user = self.create_user()
+        tags = Tag.objects.create(tag='tag1')
+        task = Task()
+        d = {'priority': '', 'description': 'foobar',
+                'user': '1', 'tags': ['1']}
+        form = forms.TaskForm(d)
+        valid = form.is_valid()
+        self.assertTrue(valid)
         task = form.save()
-        self.assertEqual(d, task.todict())
+
+        # silly extra save() to
+        # add proper undo info for m2m
+        task.save()
+
+        tdict = task.todict()
+        self.assertEqual(tdict['description'], 'foobar')
+        self.assertEqual(Undo.objects.count(), 2)
 
     def test_tag_form(self):
         d = {'tag': 'foobar'}
@@ -157,7 +167,7 @@ class TestTaskModel(TaskTestCase):
         self.assertTrue(task._is_dirty())
         task.save()
         self.assertFalse(task._is_dirty())
-        task.priority = Priority.objects.create(weight=1)
+        task.priority = Priority.objects.get(weight=1)
         self.assertItemsEqual(task._get_dirty_fields().keys(), ['priority'])
         self.assertTrue(task._is_dirty())
 
@@ -240,7 +250,7 @@ class TestTaskModel(TaskTestCase):
                     'entry': '12345',
                     }
         user = self.create_user()
-        priority = Priority.objects.create(weight=3)
+        priority = Priority.objects.get(weight=3)
         project = Project.objects.create(name=expected['project'])
         task = Task.objects.create(description='task description',
                                    user=user,
@@ -396,10 +406,11 @@ class TestViews(TaskTestCase):
 
     def test_add_tasks_POST(self):
         self._create_user_and_login()
+        Tag.objects.create(tag='tag1')
         post_data = {'description': 'foobar',
-                     'priority': 'H',
-                     'tags': 'tag1,tag2',
-                     'project': 'projectX',
+                     'priority': '',
+                     'user': '1',
+                     'tags': ['1'],
                     }
         self.assertEqual(len(Task.objects.all()), 0)
         response = self.client.post('/add/task/', post_data)
@@ -412,6 +423,9 @@ class TestViews(TaskTestCase):
         taskdict.pop('uuid')
         taskdict.pop('entry')
         taskdict.pop('status')
+        post_data.pop('user')
+        post_data.pop('priority')
+        post_data.update({'tags': 'tag1'})
         self.assertEqual(post_data, taskdict)
 
         # 2 undo objects: 1 for adding task, 1 for adding
@@ -510,7 +524,7 @@ class TestViews(TaskTestCase):
     def test_add_tag_POST(self):
         self._create_user_and_login()
         data = {'tag': u'tag1'}
-        response = self.client.post('/add/tag/', data)
+        response = self.client.post('/add/tags/', data)
         self.assertEqual(response.status_code, 200)
         tags = Tag.objects.all()
         self.assertEqual(len(tags), 1)

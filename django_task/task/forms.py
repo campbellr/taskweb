@@ -1,10 +1,11 @@
 from django import forms
 
-from task.models import Task, Tag, Project
+from task.models import Task, Tag, Project, Priority
 from task import widgets
 
 
 class TaskForm(forms.ModelForm):
+    priority = forms.ModelChoiceField(queryset=Priority.objects.exclude(weight=0), required=False)
     class Meta:
         model = Task
         exclude = ('entry', 'uuid', 'end', 'status', 'annotations')
