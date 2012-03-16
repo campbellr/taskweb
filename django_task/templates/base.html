@@ -45,14 +45,17 @@
                             <h1>Projects</h1>
                             <ul id="projects-list">
                                 {% for project in projects %}
-                                    <li><a href="{{ project.url }}">{{ project.name }}</a></li>
+                                <li><a href="{{ request.path }}?project={{project.name}}">
+                                    {{ project.name }}
+                                </a></li>
                                 {% endfor %}
                             </ul>
                         {% endif %}
                         {% if tags %}
-                            <ul id="projects-list">
+                            <h1>Tags</h1>
+                            <ul id="tags-list">
                                 {% for tag in tags %}
-                                    <li><a href="{{ tag.url }}">{{ tag.name }}</a></li>
+                                <li><a href="{{ request.path }}?tag={{ tag.tag }}">{{ tag.tag }}</a></li>
                                 {% endfor %}
                             </ul>
                         {% endif %}
@@ -63,7 +66,11 @@
                         {% block content %}{% endblock %}
                     </div>
                </div>
-            </div>
+           </div>
+           <div id="footer">
+               {% block footer %}
+               {% endblock %}
+           </div>
         </div>
     </body>
 </html>

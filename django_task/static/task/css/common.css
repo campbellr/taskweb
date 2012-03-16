@@ -77,14 +77,43 @@ h1 {
 
 #sidebar-outer {
     margin: 5px;
+    padding: 10px;
     float: left;
-    background-color: #99CCFF 
+    background-color: #99CCFF;
+    display: inline;
+    width: 20%;
+}
+
+#projects-list {
+    list-style: none;
+}
+
+#projects-list li {
+    margin-left: 0px;
+}
+
+#tags-list {
+    list-style: none;
+}
+
+#tags-list li {
+    margin-left: 0px;
 }
 
 #page-container {
     padding: 0 0.8em 0.8em 0.8em;
 }
 
+#content-container {
+    max-width: 1024px;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+#content {
+    float: right;
+    width: 80%;
+}
 
 #add_form, #upload_form {
     margin: 10px;
@@ -100,6 +129,7 @@ h1 {
 }
 
 #footer {
-    padding-top: 10px;
+    clear: both;
+    padding: 10px;
     font-style: italic;
 }

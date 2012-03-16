@@ -13,7 +13,7 @@ from taskw import decode_task
 from task import forms
 from task.decorators import logged_in_or_basicauth
 from task.grids import TaskDataGrid
-from task.models import Task, Undo
+from task.models import Task, Undo, Tag, Project
 from task.util import parse_undo
 from django.conf import settings
 
@@ -23,12 +23,43 @@ TASK_ROOT = settings.TASKDATA_ROOT
 TASK_FNAMES = ('undo.data', 'completed.data', 'pending.data')
 
 
+class TaskFilter(object):
+    def __init__(self, request, qs=Task.objects.all()):
+        self.qs = qs
+        self.request = request
+
+    def filter(self):
+        proj = self.request.GET.get('project')
+        if proj:
+            qs = self.qs.filter(project__name=proj)
+            return qs
+
+        tag = self.request.GET.get('tag')
+        if tag:
+            qs = self.qs.filter(tags__tag=tag)
+            return qs
+
+        return self.qs
+
+
+def get_tags():
+    return Tag.objects.all().values('tag')
+
+
+def get_projects():
+    return Project.objects.all().values('name')
+
+
 def pending_tasks(request, template='task/index.html'):
     pending = Task.objects.filter(status='pending')
     task_url = "http://%s/taskdb/" % request.get_host()
-    grid = TaskDataGrid(request, queryset=pending)
+    filtered = TaskFilter(request, pending).filter()
+
+    grid = TaskDataGrid(request, queryset=filtered)
     return grid.render_to_response(template,
-            extra_context={'task_url': task_url})
+            extra_context={'task_url': task_url,
+                           'tags': get_tags(),
+                            'projects': get_projects()})
 
 
 def completed_tasks(request, template='task/index.html'):

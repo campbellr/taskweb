@@ -11,10 +11,9 @@
 {% endblock %}
 
 {% block content %}
-{% box %}
 {{datagrid.render_listview}}
-{% endbox %}
-<div id='footer'>
-    <p>task push/pull/merge url: {{ task_url }}</p>
-</div>
 {% endblock %}
+
+{% block footer %}
+<p>task push/pull/merge url: {{ task_url }}</p>
+{% endblock footer %}
