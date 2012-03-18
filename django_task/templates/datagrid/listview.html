@@ -2,7 +2,7 @@
 {% load i18n %}
 <div class="datagrid-wrapper" id="{{datagrid.id}}">
  <div class="datagrid-main">
-  <table class="datagrid">
+  <table class="table table-striped">
    <colgroup>
 {% for column in datagrid.columns %}
     <col class="{{column.id}}"{% ifnotequal column.width 0 %} width="{{column.width}}%"{% endifnotequal %} />
