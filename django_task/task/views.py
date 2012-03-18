@@ -65,9 +65,12 @@ def pending_tasks(request, template='task/index.html'):
 def completed_tasks(request, template='task/index.html'):
     completed = Task.objects.filter(status='completed')
     task_url = "http://%s/taskdb/" % request.get_host()
-    grid = TaskDataGrid(request, queryset=completed)
+    filtered = TaskFilter(request, completed).filter()
+    grid = TaskDataGrid(request, queryset=filtered)
     return grid.render_to_response(template,
-            extra_context={'task_url': task_url})
+            extra_context={'task_url': task_url,
+                           'tags': get_tags(),
+                            'projects': get_projects()})
 
 
 @login_required
