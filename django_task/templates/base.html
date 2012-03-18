@@ -3,74 +3,77 @@
     <head>
         <title> Task Web {% block title %}{% endblock %} </title>  
         {% block extrahead %} {% endblock %}
-        <link rel="stylesheet" type=text/css href="{{ STATIC_URL }}task/css/common.css">
+        <link rel="stylesheet" type=text/css href="{{ STATIC_URL }}bootstrap/css/bootstrap.css">
     </head> 
     
     <body>
-        <div id="container">
-            <div id="headerbar">
-                <ul id="accountnav">
-                    {% if user.is_authenticated %}
-                        <li>Welcome, <b>{{user.username}}</b></li>
-                        <li>- <a href="{% url django.contrib.auth.views.logout %}">Log out</a></li>
-                    {% else %}
-                        <li><a href="{% url django.contrib.auth.views.login %}">Log in</a></li>
-                    {% endif %}
-                </ul>
-                <br />
-                <div id='branding'>
-                    <a href="{% url task.views.pending_tasks %}">
-                        <img id="logo" src="{{ STATIC_URL }}task/img/logo.png" alt=""/>
+        <div class="navbar">
+            <div class="navbar-inner">
+                <div class="container-fluid">
+                    <a class='brand' href="#">
+                        <img id="logo" width="30" height="30" src="{{ STATIC_URL }}task/img/logo.png" alt=""/>
+                        task web
                     </a>
-                    <h1 id='title'>
-                        <a href="{% url task.views.pending_tasks %}">task web</a>
-                    </h1>
-                </div>
-            </div>
-            <div id="page-container">
-                <div id="navbar-outer">
                     {% block navbar %}
-                    <ul id=navbar>
-                        <li><a href="{% url task.views.pending_tasks %}">Pending</a></li>
-                        <li><a href="{% url task.views.completed_tasks %}">Completed</a></li>
+                    <ul class="nav">
+                        <li><a href="{% url task.views.pending_tasks %}">Pending tasks</a></li>
+                        <li class=:divider-vertical"></li>
+                        <li><a href="{% url task.views.completed_tasks %}">Completed tasks</a></li>
+                        <li class=:divider-vertical"></li>
                         <li><a href="{% url task.views.add_task %}">Add Task</a></li>
+                        <li class=:divider-vertical"></li>
                         <li><a href="">Statistics</a></li>
                     </ul>
-                    {% endblock navbar %}
-                </div>
-                <div id="content-container">
-                    <div id="sidebar-outer">
-                        {% block sidebar %}
-                        {% if projects %}
-                            <h1>Projects</h1>
-                            <ul id="projects-list">
+                {% endblock navbar %}
+                    <p class="navbar-text pull-right">
+                        {% if user.is_authenticated %}
+                            Welcome, <b>{{user.username}}</b> - 
+                            <a href="{% url django.contrib.auth.views.logout %}">Log out</a>
+                        {% else %}
+                            <a href="{% url django.contrib.auth.views.login %}">Log in</a>
+                        {% endif %}
+                    </p>
+                </div> <!--/container-fluid -->
+            </div> <!--/navbar-inner-->
+        </div> <!--/navbar-->
+        <div class="container-fluid">
+            <div class="row-fluid">
+                {% block content_with_sidebar %}
+                {% block sidebar %}
+                <div class="span2">
+                    <div class="well sidebar-nav">
+                        <ul class="nav nav-list">
+                            {% if projects %}
+                                <li class="nav-header">Projects</li>
                                 {% for project in projects %}
-                                <li><a href="{{ request.path }}?project={{project.name}}">
-                                    {{ project.name }}
-                                </a></li>
-                                {% endfor %}
-                            </ul>
-                        {% endif %}
-                        {% if tags %}
-                            <h1>Tags</h1>
-                            <ul id="tags-list">
+                                    <li>
+                                        <a href="{{ request.path }}?project={{project.name}}">
+                                            {{ project.name }}
+                                        </a>
+                                    </li>
+                                    {% endfor %}
+                            {% endif %}
+                            {% if tags %}
+                                <li class="nav-header">Tags</li>
                                 {% for tag in tags %}
-                                <li><a href="{{ request.path }}?tag={{ tag.tag }}">{{ tag.tag }}</a></li>
+                                    <li><a href="{{ request.path }}?tag={{ tag.tag }}">{{ tag.tag }}</a></li>
                                 {% endfor %}
-                            </ul>
-                        {% endif %}
-
-                        {% endblock sidebar %}
-                    </div>
-                    <div id='content'>
+                            {% endif %}
+                    </div> <!--/well-->
+                </div> <!--/span2-->
+                {% endblock sidebar %}
+                <div class="span9">
+                    <div class="row-fluid">
                         {% block content %}{% endblock %}
                     </div>
-               </div>
-           </div>
-           <div id="footer">
-               {% block footer %}
-               {% endblock %}
-           </div>
-        </div>
+                </div>
+            </div> <!--/row-->
+            {% endblock content_with_sidebar %}
+            <hr/>
+            <footer>
+                {% block footer %}
+                {% endblock %}
+            </footer>
+        </div> <!--/.fluid-container-->
     </body>
 </html>

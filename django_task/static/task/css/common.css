@@ -81,7 +81,12 @@ h1 {
     float: left;
     background-color: #99CCFF;
     display: inline;
-    /* width: 20%; */
+    width: 200px;
+}
+
+#sidebar-outer h1 {
+    text-align: center;
+    font-size: 16px;
 }
 
 #projects-list {
@@ -112,7 +117,6 @@ h1 {
 
 #content {
     float: right;
-    width: 80%;
 }
 
 #add_form, #upload_form {
