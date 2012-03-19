@@ -1,8 +1,15 @@
 {% extends "base.html" %}
 {% load url from future %}
 
-{% block content %}
-
-<p>Logged out!</p>
-
+{% block content_with_sidebar %}
+<div class="page-header">
+    <h1>Logged out</h1>
+</div>
+<div class="row">
+    <div class="span6">
+    <p>Successfully logged out. Click <a href="/">here</a>
+       to return to the main page.
+       </p>
+   </div>
+</div>
 {% endblock %}

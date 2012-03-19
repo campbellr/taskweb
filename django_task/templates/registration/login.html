@@ -1,13 +1,19 @@
 {% extends "base.html" %}
 {% load url from future %}
 
-{% block content %}
+{% block content_with_sidebar %}
 
 {% if form.errors %}
 <p>Your username and password didn't match. Please try again.</p>
 {% endif %}
 
-<form method="post" action="{% url 'django.contrib.auth.views.login' %}">
+<div class="content">
+    <div class="page-header">
+        <h1>Log in</h1>
+    </div>
+<div class="row">
+<div class="span6">
+<form class="well form-horizontal" method="post" action="{% url 'django.contrib.auth.views.login' %}">
 {% csrf_token %}
 <table>
 <tr>
@@ -20,8 +26,10 @@
 </tr>
 </table>
 
-<input type="submit" value="login" />
+<input class="btn" type="submit" value="login" />
 <input type="hidden" name="next" value="{{ next }}" />
 </form>
-
+</div>
+</div>
+</div>
 {% endblock %}
