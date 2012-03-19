@@ -42,12 +42,18 @@ class TaskFilter(object):
         return self.qs
 
 
-def get_tags():
-    return Tag.objects.all().values('tag')
+def get_tags(status=None):
+    if status is None:
+        return Tag.objects.all().values('tag')
+
+    return Tag.objects.filter(task__status=status).values('tag').distinct()
 
 
-def get_projects():
-    return Project.objects.all().values('name')
+def get_projects(status=None):
+    if status is None:
+        return Project.objects.all().values('name')
+
+    return Project.objects.filter(task__status=status).values('name').distinct()
 
 
 def pending_tasks(request, template='task/index.html'):
@@ -58,8 +64,8 @@ def pending_tasks(request, template='task/index.html'):
     grid = TaskDataGrid(request, queryset=filtered)
     return grid.render_to_response(template,
             extra_context={'task_url': task_url,
-                           'tags': get_tags(),
-                            'projects': get_projects()})
+                           'tags': get_tags('pending'),
+                            'projects': get_projects('pending')})
 
 
 def completed_tasks(request, template='task/index.html'):
@@ -69,8 +75,8 @@ def completed_tasks(request, template='task/index.html'):
     grid = TaskDataGrid(request, queryset=filtered)
     return grid.render_to_response(template,
             extra_context={'task_url': task_url,
-                           'tags': get_tags(),
-                            'projects': get_projects()})
+                           'tags': get_tags('completed'),
+                            'projects': get_projects('completed')})
 
 
 @login_required
