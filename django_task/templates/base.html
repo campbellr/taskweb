@@ -2,65 +2,73 @@
 <html lang="en">
     <head>
         <title> Task Web {% block title %}{% endblock %} </title>  
-        {% block extrahead %} {% endblock %}
         <link rel="stylesheet" type=text/css href="{{ STATIC_URL }}bootstrap/css/bootstrap.css">
+        <link rel="stylesheet" type=text/css href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.css">
+        <link rel="stylesheet" type=text/css href="{{ STATIC_URL }}task/css/common.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js"></script>
+        <script src="{{ STATIC_URL }}bootstrap/js/bootstrap.js"></script>
+        {% block extrahead %}
+        {% endblock %}
     </head> 
     
     <body>
         <div class="navbar">
             <div class="navbar-inner">
                 <div class="container-fluid">
+                    <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </a>
                     <a class='brand' href="{% url task.views.pending_tasks %}">
                         <img id="logo" width="30" height="30" src="{{ STATIC_URL }}task/img/logo.png" alt=""/>
                         task web
                     </a>
-                    {% block navbar %}
-                    <ul class="nav">
-                        <li><a href="{% url task.views.pending_tasks %}">Pending tasks</a></li>
-                        <li class=:divider-vertical"></li>
-                        <li><a href="{% url task.views.completed_tasks %}">Completed tasks</a></li>
-                        <li class=:divider-vertical"></li>
-                        <li><a href="{% url task.views.add_task %}">Add Task</a></li>
-                        <li class=:divider-vertical"></li>
-                        <li><a href="">Statistics</a></li>
-                    </ul>
-                {% endblock navbar %}
-                    <p class="navbar-text pull-right">
-                        {% if user.is_authenticated %}
-                            Welcome, <b>{{user.username}}</b> - 
-                            <a href="{% url django.contrib.auth.views.logout %}">Log out</a>
-                        {% else %}
-                            <a href="{% url django.contrib.auth.views.login %}">Log in</a>
-                        {% endif %}
-                    </p>
+                    <div class="nav-collapse">
+                        {% block navbar %}
+                        <ul class="nav">
+                            <li><a href="{% url task.views.pending_tasks %}">Pending tasks</a></li>
+                            <li><a href="{% url task.views.completed_tasks %}">Completed tasks</a></li>
+                            <li><a href="{% url task.views.add_task %}">Add Task</a></li>
+                            <li><a href="">Statistics</a></li>
+                        </ul>
+                        {% endblock navbar %}
+                        <p class="navbar-text pull-right">
+                            {% if user.is_authenticated %}
+                                Welcome, <b>{{user.username}}</b> - 
+                                <a href="{% url django.contrib.auth.views.logout %}">Log out</a>
+                            {% else %}
+                                <a href="{% url django.contrib.auth.views.login %}">Log in</a>
+                            {% endif %}
+                        </p>
+                    </div> <!--/nav-collapse-->
                 </div> <!--/container-fluid -->
             </div> <!--/navbar-inner-->
         </div> <!--/navbar-->
+
         <div class="container-fluid">
             <div class="row-fluid">
                 {% block content_with_sidebar %}
                 {% block sidebar %}
-                <div class="span2">
-                    <div class="well sidebar-nav">
-                        <ul class="nav nav-list">
-                            {% if projects %}
-                                <li class="nav-header">Projects</li>
-                                {% for project in projects %}
-                                    <li>
-                                        <a href="{{ request.path }}?project={{project.name}}">
-                                            {{ project.name }}
-                                        </a>
-                                    </li>
-                                    {% endfor %}
-                            {% endif %}
-                            {% if tags %}
-                                <li class="nav-header">Tags</li>
-                                {% for tag in tags %}
-                                    <li><a href="{{ request.path }}?tag={{ tag.tag }}">{{ tag.tag }}</a></li>
+                <div class="well sidebar-nav-fixed">
+                    <ul class="nav nav-list">
+                        {% if projects %}
+                            <li class="nav-header">Projects</li>
+                            {% for project in projects %}
+                                <li>
+                                    <a href="{{ request.path }}?project={{project.name}}">
+                                        {{ project.name }}
+                                    </a>
+                                </li>
                                 {% endfor %}
-                            {% endif %}
-                    </div> <!--/well-->
-                </div> <!--/span2-->
+                        {% endif %}
+                        {% if tags %}
+                            <li class="nav-header">Tags</li>
+                            {% for tag in tags %}
+                                <li><a href="{{ request.path }}?tag={{ tag.tag }}">{{ tag.tag }}</a></li>
+                            {% endfor %}
+                        {% endif %}
+                </div> <!--/well-->
                 {% endblock sidebar %}
                 <div class="span9">
                     <div class="row-fluid">

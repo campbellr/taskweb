@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content_with_sidebar %}
+<div class="container-fluid">
+    <div class="page-header">
+        <h1>Project {{ project.name }}</h1>
+    </div>
+    <div class="well span10">
+        <h2>Tasks: ({{project.task_set.count }})</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Description</th>
+                <tr>
+            </thead>
+            <tbody>
+            {% for task in project.task_set.all %}
+                <tr><td>{{ task.id}}</td><td>{{task.description}}</td></tr>
+            {% endfor %}
+            <tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

@@ -3,7 +3,7 @@ import logging
 from django.http import (HttpResponse,  HttpResponseRedirect,
                         HttpResponseNotAllowed,
                         HttpResponseNotFound, HttpResponseForbidden)
-from django.shortcuts import render_to_response
+from django.shortcuts import render, get_object_or_404
 from django.template import RequestContext
 from django.contrib.auth.decorators import login_required
 from django.utils.html import escape
@@ -93,8 +93,7 @@ def add_task(request, template='task/add.html'):
     else:
         form = forms.TaskForm(initial={'user': request.user})
 
-    return render_to_response(template, {'form': form},
-                              context_instance=RequestContext(request))
+    return render(request, template, {'form': form})
 
 
 @login_required
@@ -120,7 +119,7 @@ def add_model(request, form_cls, name, template="popup.html"):
         form = form_cls()
 
     page_context = {'form': form, 'field': name}
-    return render_to_response("popup.html", page_context, context_instance=RequestContext(request))
+    return render(request, "popup.html", page_context)
 
 
 def done_task(request, task_id, template='task/done.html'):
@@ -131,22 +130,16 @@ def edit_task(request, task_id, template='task/edit.html'):
     return HttpResponse("This is the 'edit task %s' page." % task_id)
 
 
-def detail_task(request, task_id, template='task/detail.html'):
-    return HttpResponse("This is the 'detail task %s' page." % task_id)
+def detail_task(request, task_id, template='task/detail_task.html'):
+    task = get_object_or_404(Task, pk=task_id)
+    context = {'task': task}
+    return render(request, template, context)
 
 
-#@login_required
-#def upload(request, template='task/upload.html'):
-#    if request.method == "POST":
-#        form = forms.TaskDbUploadForm(request.POST, request.FILES)
-#        if form.is_valid():
-#            handle_uploaded_db(request.FILES, request.user)
-#            return HttpResponseRedirect('/')
-#    else:
-#        form = forms.TaskDbUploadForm()
-#
-#    return render_to_response(template, {'form': form},
-#                              context_instance=RequestContext(request))
+def detail_project(request, proj_id, template='task/detail_project.html'):
+    project = get_object_or_404(Project, pk=proj_id)
+    context = {'project': project}
+    return render(request, template, context)
 
 
 def get_taskdb(request, filename):

@@ -119,6 +119,9 @@ class Annotation(models.Model):
     time = models.DateTimeField()
     data = models.TextField()
 
+    class Meta:
+        ordering = ['-time']
+
     def save(self, *args, **kwargs):
         if not self.time:
             self.time = datetime.datetime.now()
@@ -141,6 +144,10 @@ class Project(models.Model):
 
     def __unicode__(self):
         return self.name
+
+    @models.permalink
+    def get_absolute_url(self):
+        return ("task.views.detail_project", [str(self.id)])
 
 
 class DirtyFieldsMixin(object):
@@ -203,6 +210,10 @@ class Task(models.Model, DirtyFieldsMixin):
 
     def __unicode__(self):
         return self.description
+
+    @models.permalink
+    def get_absolute_url(self):
+        return ("task.views.detail_task", [str(self.id)])
 
     @classmethod
     def fromdict(cls, d, track=False):

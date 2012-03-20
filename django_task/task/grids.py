@@ -57,11 +57,11 @@ class DescriptionWithAnnotationColumn(Column):
 
 
 class TaskDataGrid(grids.DataGrid):
-    id_ = IDColumn('ID', sortable=True, shrink=True, field_name='id')
+    id_ = IDColumn('ID', sortable=True, shrink=True, field_name='id', link=True)
     entry = ShortDateTimeSinceColumn('Age', sortable=True)
     due = grids.DateTimeColumn('Due', sortable=True)
     end = grids.DateTimeColumn('Completed', sortable=True)
-    project = Column('Proj', sortable=True, shrink=True)
+    project = Column('Proj', sortable=True, shrink=True, link=True, link_func=grids.DataGrid.link_to_value)
     tags = TagColumn('Tags', sortable=True)
     priority = Column('Pri', sortable=True, shrink=True)
     description = DescriptionWithAnnotationColumn('Description', sortable=True,
