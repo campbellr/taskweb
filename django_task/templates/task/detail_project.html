@@ -15,7 +15,7 @@
             </thead>
             <tbody>
             {% for task in project.task_set.all %}
-                <tr><td>{{ task.id}}</td><td>{{task.description}}</td></tr>
+            <tr><td><a href={{task.get_absolute_url}}>{{ task.id}}</a></td><td>{{task.description}}</td></tr>
             {% endfor %}
             <tbody>
         </table>
