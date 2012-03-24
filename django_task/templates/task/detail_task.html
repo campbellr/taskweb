@@ -20,7 +20,11 @@
         </div>
         <div class="span4">
         <h3>Priority:</h3>
+        {% if task.priority %}
         <p>{{ task.priority }}</p>
+        {% else %}
+        <p>Unprioritized</p>
+        {% endif %}
         </div>
         <div class="span4">
         <h3>Due date:</h3>
@@ -35,7 +39,7 @@
         {% if task.tags.all %}
             <p>{{ task.tags.all|join:", "}}</p>
         {% else %}
-            <p>None</p>
+            <p>No tags...</p>
         {% endif %}
         </div>
         <div class="span4">
@@ -54,12 +58,26 @@
         </div>
         <div class="span4">
         <h3>Dependencies:</h3>
-        <ul class="unstyled">
-        {% for dep in task.dependencies.all %}
-            <li>{{ dep }}</li>
-        {% empty %}
-            <p>No dependencies... </p>
-        {% endfor %}
+        {% if task.dependencies.count > 0 %}
+            <table class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for dep in task.dependencies.all %}
+                    <tr>
+                        <td><a href="{{ dep.get_absolute_url }}">{{dep.id}}</a></td>
+                        <td>{{ dep.description }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+        <p>No dependencies... </p>
+        {% endif %}
         </div>
     </div>
 

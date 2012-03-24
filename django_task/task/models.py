@@ -19,6 +19,22 @@ PRIORITY_MAP = dict(PRIORITY_CHOICES)
 PRIORITY_MAP_R = dict((v, k) for (k, v) in PRIORITY_CHOICES)
 
 
+def get_or_create_task(**kwargs):
+    """ Return an existing task or new task if it doesn't exist.
+
+        This is intended to be exactly the same as `Model.objects.get_or_create()`
+        except that the `track` kwarg is passed to `save`.
+    """
+    track = kwargs.pop('track', True)
+    try:
+        task = Task.objects.get(**kwargs)
+    except Task.DoesNotExist:
+        task = Task(**dict((k, v) for (k, v) in kwargs.items() if '__' not in k))
+        task.save(track=track)
+
+    return task
+
+
 def encode_task(d):
     d.pop('user', None)
     return _encode_task(d)
@@ -229,15 +245,18 @@ class Task(models.Model, DirtyFieldsMixin):
         if entry is not None:
             entry = datetime.datetime.fromtimestamp(int(entry))
 
-        task = cls(
-            description=d['description'],
-            uuid=d.get('uuid'),
-            status=d.get('status'),
-            entry=entry,
-            due=due,
-            end=end,
-            user=d['user'],
-            )
+        try:
+            task = Task.objects.get(uuid=d['uuid'])
+        except Task.DoesNotExist:
+            task = cls(
+                description=d['description'],
+                uuid=d.get('uuid'),
+                status=d.get('status'),
+                entry=entry,
+                due=due,
+                end=end,
+                user=d['user'],
+                )
 
         # add the priority
         task.set_priority(d.get('priority'), track=False)
@@ -246,11 +265,18 @@ class Task(models.Model, DirtyFieldsMixin):
         task.set_project(d.get('project'), track=False)
 
         # we have to save before we can add ManyToMany
-        task.save(track=track)
+        if not task.pk:
+            task.save(track=track)
 
         # add the tags
         for tag in d.get('tags', '').split(','):
-            task.add_tag(tag, track=False)
+            if tag:
+                task.add_tag(tag, track=False)
+
+        # dependencies
+        for dep in d.get('depends', '').split(','):
+            if dep:
+                task.add_dependency(dep, track=False)
 
         # add the annotations
         annotations = []
@@ -312,7 +338,7 @@ class Task(models.Model, DirtyFieldsMixin):
     def add_dependency(self, task):
         if isinstance(task, (str, unicode)):
             # a uuid?
-            task = Task.get(uuid=task)
+            task = get_or_create_task(uuid=task, track=False)
 
         self.dependencies.add(task)
 
@@ -376,7 +402,10 @@ class Task(models.Model, DirtyFieldsMixin):
                 elif isinstance(value, list):
                     value = ','.join(value)
                 elif fieldname == 'dependencies':
-                    value = ','.join([t.uuid for t in value.all()])
+                    value = ','.join([t.uuid for t in value.all().order_by('pk')])
+                    if value:
+                        task['depends'] = value
+                    continue
                 elif fieldname == 'annotations':
                     for annotation in value.all():
                         key = 'annotation_%s' % datetime2ts(annotation.time)

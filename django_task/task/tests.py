@@ -331,6 +331,33 @@ class TestTaskModel(TaskTestCase):
         data.pop('priority')
         self.assertEqual(data, task.todict())
 
+    def test_task_fromdict_dependencies(self):
+        user = self.create_user()
+
+        task1 = Task(user=user, description='test')
+        task1.save(track=False)
+        task2 = Task(user=user, description='test2')
+        task2.save(track=False)
+
+        data = {'description': 'foobar', 'uuid': 'sssssssss',
+                'status': 'pending',
+                'entry': '12345',
+                'user': user,
+                'annotation_1324076995': u'this is an annotation',
+                'depends': u','.join([t.uuid for t in (task1, task2)]),
+                'priority': '',
+                }
+
+        task = Task.fromdict(data)
+
+        # ensure the data is in the db, not just the task
+        # object from above
+        task = Task.objects.get(description='foobar')
+        self.assertEqual(list(Undo.objects.all()), [])
+        data.pop('user')
+        data.pop('priority')
+        self.assertEqual(data, task.todict())
+
     def test_task_fromdict_unicode(self):
         user = self.create_user()
         data = {'description': u'foobar', 'uuid': u'sssssssss',
@@ -343,9 +370,11 @@ class TestTaskModel(TaskTestCase):
 
         task = Task.fromdict(data)
 
+        self.assertEqual(Task.objects.count(), 1)
         # ensure the data is in the db, not just the task
         # object from above
         task = Task.objects.all()[0]
+
         self.assertEqual(list(Undo.objects.all()), [])
         data.pop('user')
         self.assertEqual(data, task.todict())
