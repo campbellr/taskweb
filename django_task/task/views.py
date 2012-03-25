@@ -93,7 +93,12 @@ def add_task(request, template='task/add.html'):
     else:
         form = forms.TaskForm(initial={'user': request.user})
 
-    return render(request, template, {'form': form})
+    context = {
+                'method': 'add',
+                'form': form,
+                'title': "Add Task",
+                }
+    return render(request, template, context)
 
 
 @login_required
@@ -122,12 +127,33 @@ def add_model(request, form_cls, name, template="popup.html"):
     return render(request, "popup.html", page_context)
 
 
+@login_required
 def done_task(request, task_id, template='task/done.html'):
     return HttpResponse("This is the 'done task %s' page." % task_id)
 
 
-def edit_task(request, task_id, template='task/edit.html'):
-    return HttpResponse("This is the 'edit task %s' page." % task_id)
+@login_required
+def edit_task(request, task_id, template='task/add.html'):
+    task = get_object_or_404(Task, pk=task_id)
+
+    if request.method == 'POST':
+        form = forms.TaskForm(request.POST, instance=task)
+        if form.is_valid():
+            task = form.save()
+            # silly extra save to create
+            # undo object for m2m fields
+            task.save()
+            return HttpResponseRedirect('/')
+    else:
+        form = forms.TaskForm(instance=task)
+
+    context = {
+                'task': task,
+                'method': 'edit',
+                'form': form,
+                'title': "Edit Task",
+                }
+    return render(request, template, context)
 
 
 def detail_task(request, task_id, template='task/detail_task.html'):

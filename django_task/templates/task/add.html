@@ -11,10 +11,15 @@
 {% block content_with_sidebar %}
 <div class="container-fluid">
     <div class="page-header">
-        <h1>Add Task</h1>
+        <h1>{{ title }}</h1>
     </div>
     <div class="span9">
-        <form class="well form-horizontal" action='{% url task.views.add_task %}' method='post'> {% csrf_token %}
+        {% if method == "add" %}
+        <form class="well form-horizontal" action='{% url task.views.add_task %}' method='post'>
+        {% else %}
+        <form class="well form-horizontal" action='{% url task.views.edit_task task_id=task.id %}' method='post'>
+        {% endif %}
+            {% csrf_token %}
             {{ form.as_p}}
             <p><input type='submit' value='Submit' class="btn"/></p>
         </form>

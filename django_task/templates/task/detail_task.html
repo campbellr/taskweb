@@ -6,6 +6,11 @@
     </div>
     <div class="well span10">
         <div class="row">
+            <div class="span2 offset9">
+                <a class="btn btn-primary" href="{% url task.views.edit_task task_id=task.pk %}">Edit task</a>
+            </div>
+        </div>
+        <div class="row">
         <div class="span10">
         <h2>Description:</h2>
         <p>{{ task.description }}</p>
