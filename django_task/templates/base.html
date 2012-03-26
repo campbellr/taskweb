@@ -1,3 +1,5 @@
+{% load base_extras %}
+
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -27,10 +29,18 @@
                     <div class="nav-collapse">
                         {% block navbar %}
                         <ul class="nav">
-                            <li><a href="{% url task.views.pending_tasks %}">Pending tasks</a></li>
-                            <li><a href="{% url task.views.completed_tasks %}">Completed tasks</a></li>
-                            <li><a href="{% url task.views.add_task %}">Add Task</a></li>
-                            <li><a href="">Statistics</a></li>
+                            <li class="{% navactive request 'task.views.pending_tasks' %}">
+                                <a href="{% url task.views.pending_tasks %}">Pending</a>
+                            </li>
+                            <li class="{% navactive request 'task.views.completed_tasks' %}">
+                                <a href="{% url task.views.completed_tasks %}">Completed</a>
+                            </li>
+                            <li class="{% navactive request 'task.views.add_task' %}">
+                                <a href="{% url task.views.add_task %}">Add</a>
+                            </li>
+                            <li>
+                                <a href="">Statistics</a>
+                            </li>
                         </ul>
                         {% endblock navbar %}
                         <p class="navbar-text pull-right">
