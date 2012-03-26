@@ -37,10 +37,10 @@ Requirements
 TODO
 ====
 
- * Add ability to edit tasks
- * Add ability to mark tasks 'done'
- * Add calendar view, and other useful taskwarrior charts
- * Add multi-user support (multiple users uploading taskwarrior data)
+ * Add calendar view, and other useful taskwarrior charts/stats
+ * Better multi-user support
+ * Better tablet/mobile support
+ * Lots of usability enhancements
 
 Reporting Bugs
 ==============
