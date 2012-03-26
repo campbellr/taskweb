@@ -65,7 +65,11 @@
                         {% if projects %}
                             <li class="nav-header">Projects</li>
                             {% for project in projects %}
+                                {% if request.GET.project == project.name %}
+                                <li class="active">
+                                {% else %}
                                 <li>
+                                {% endif %}
                                     <a href="{{ request.path }}?project={{project.name}}">
                                         {{ project.name }}
                                     </a>
@@ -75,7 +79,13 @@
                         {% if tags %}
                             <li class="nav-header">Tags</li>
                             {% for tag in tags %}
-                                <li><a href="{{ request.path }}?tag={{ tag.tag }}">{{ tag.tag }}</a></li>
+                            {% if request.GET.tag == tag.tag %}
+                            <li class="active">
+                            {% else %}
+                            <li>
+                            {% endif %}
+                                <a href="{{ request.path }}?tag={{ tag.tag }}">{{ tag.tag }}</a>
+                            </li>
                             {% endfor %}
                         {% endif %}
                 </div> <!--/well-->
