@@ -30,17 +30,17 @@ Requirements
 
 ``task web`` requires the following software:
 
-    * `Django <http://djangoproject.com/>`_
-    * `djblets datagrid <https://github.com/djblets/djblets>`_
-    * `taskw <https://github.com/ralphbean/taskw>`_
+* `Django <http://djangoproject.com/>`_
+* `djblets datagrid <https://github.com/djblets/djblets>`_
+* `taskw <https://github.com/ralphbean/taskw>`_
 
 TODO
 ====
 
- * Add calendar view, and other useful taskwarrior charts/stats
- * Better multi-user support
- * Better tablet/mobile support
- * Lots of usability enhancements
+* Add calendar view, and other useful taskwarrior charts/stats
+* Better multi-user support
+* Better tablet/mobile support
+* Lots of usability enhancements
 
 Reporting Bugs
 ==============
