@@ -6,15 +6,20 @@
     </div>
     <div class="well span10">
         <div class="row-fluid">
-            <div class="pull-right">
-                <a class="btn btn-primary" href="{% url task.views.edit_task task_id=task.pk %}">Edit task</a>
-            </div>
+            <div class="btn-group pull-right">
+                <a class="btn btn-success" href="{% url task.views.done_task task_id=task.pk %}">Done</a>
+                <a class="btn btn-primary" href="{% url task.views.edit_task task_id=task.pk %}">Edit</a>
+            </div> <!--/row-fluid-->
         </div>
         <div class="row">
         <div class="span10">
         <h2>Description:</h2>
         <p>{{ task.description }}</p>
         </div>
+        </div>
+        <br/>
+        <br/>
+        <div class="row">
         <div class="span4">
         <h3>User:</h3>
         <p>{{ task.user }}</p>
@@ -83,8 +88,8 @@
         {% else %}
         <p>No dependencies... </p>
         {% endif %}
-        </div>
-    </div>
+        </div> <!--/span4-->
+    </div> <!--/row-->
 
     </div>
 </div>

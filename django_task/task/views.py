@@ -124,12 +124,16 @@ def add_model(request, form_cls, name, template="popup.html"):
         form = form_cls()
 
     page_context = {'form': form, 'field': name}
-    return render(request, "popup.html", page_context)
+    return render(request, template, page_context)
 
 
 @login_required
 def done_task(request, task_id, template='task/done.html'):
-    return HttpResponse("This is the 'done task %s' page." % task_id)
+    task = get_object_or_404(Task, pk=task_id)
+    task.status = 'completed'
+    task.save()
+    context = {'task': task}
+    return render(request, template, context)
 
 
 @login_required

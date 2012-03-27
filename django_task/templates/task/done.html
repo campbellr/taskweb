@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block extrahead %}
+<meta http-equiv="refresh" content="5; url={% url task.views.pending_tasks %}">
+{{ block.super }}
+{% endblock extrahead %}
+
+{% block content_with_sidebar %}
+<div class="page-header">
+    <h1>Task #{{ task.id }} completed!</h1>
+</div>
+<div class="row">
+    <div class="span6">
+        <p>Successfully marked task #{{ task.id }} 'completed'. Click <a href="/">here</a>
+        to return to the main page.
+        </p>
+        <p>
+        You will be automatically redirected in 5 seconds.
+       </p>
+   </div>
+</div>
+{% endblock %}
