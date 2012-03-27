@@ -12,6 +12,7 @@ STATUS_CHOICES = (
 class TaskForm(forms.ModelForm):
     priority = forms.ModelChoiceField(queryset=Priority.objects.exclude(weight=0), required=False)
     status = forms.ChoiceField(choices=STATUS_CHOICES)
+    dependencies = forms.ModelMultipleChoiceField(queryset=Task.objects.filter(status='pending'), required=False)
 
     class Meta:
         model = Task
