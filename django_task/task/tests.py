@@ -28,7 +28,8 @@ class TestForms(TaskTestCase):
         tags = Tag.objects.create(tag='tag1')
         task = Task()
         d = {'priority': '', 'description': 'foobar',
-                'user': '1', 'tags': ['1']}
+                'user': '1', 'tags': ['1'],
+                'status': 'pending'}
         form = forms.TaskForm(d)
         valid = form.is_valid()
         self.assertTrue(valid)
@@ -331,6 +332,33 @@ class TestTaskModel(TaskTestCase):
         data.pop('priority')
         self.assertEqual(data, task.todict())
 
+    def test_task_fromdict_dependencies_dont_exist_yet(self):
+        user = self.create_user()
+        task1_info = {'description': 'foobar',
+                      'uuid': '1234abc',
+                      'entry': '1234',
+                      'project': 'test',
+                      'user': user,
+                      'status': 'pending',
+                      }
+
+        task2_info = {'description': 'baz',
+                      'uuid': 'aaaaaa',
+                      'entry': '1237',
+                      'depends': '1234abc',
+                      'user': user,
+                      'status': 'pending',
+                      'annotation_123456': 'some note'
+                      }
+
+        task2 = Task.fromdict(task2_info)
+        task1 = Task.fromdict(task1_info)
+
+        task2_info.pop('user')
+        task1_info.pop('user')
+        self.assertEqual(task1.todict(), task1_info)
+        self.assertEqual(task2.todict(), task2_info)
+
     def test_task_fromdict_dependencies(self):
         user = self.create_user()
 
@@ -440,6 +468,7 @@ class TestViews(TaskTestCase):
                      'priority': '',
                      'user': '1',
                      'tags': ['1'],
+                     'status': 'pending'
                     }
         self.assertEqual(len(Task.objects.all()), 0)
         response = self.client.post('/add/task/', post_data)
@@ -451,7 +480,6 @@ class TestViews(TaskTestCase):
         # compare with them
         taskdict.pop('uuid')
         taskdict.pop('entry')
-        taskdict.pop('status')
         post_data.pop('user')
         post_data.pop('priority')
         post_data.update({'tags': 'tag1'})

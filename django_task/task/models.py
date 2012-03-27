@@ -247,6 +247,12 @@ class Task(models.Model, DirtyFieldsMixin):
 
         try:
             task = Task.objects.get(uuid=d['uuid'])
+            task.description = d['description']
+            task.status = d.get('status')
+            task.entry = entry
+            task.due = due
+            task.end = end
+            task.user = d['user']
         except Task.DoesNotExist:
             task = cls(
                 description=d['description'],
