@@ -1,12 +1,13 @@
 import uuid
 import datetime
 import time
+from operator import itemgetter
 
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 
-from taskw import encode_task as _encode_task
+from taskw.utils import encode_replacements
 
 PRIORITY_CHOICES = (
         (0, ''),  # unprioritized
@@ -36,6 +37,19 @@ def get_or_create_task(**kwargs):
 
 
 def encode_task(d):
+    # until this gets merged to taskw
+    def _encode_task(task):
+        """ Convert a dict-like task to its string representation """
+        # First, clean the task:
+        task = task.copy()
+        for k in task:
+            for unsafe, safe in encode_replacements.iteritems():
+                task[k] = task[k].replace(unsafe, safe)
+
+        # Then, format it as a string
+        return "[%s]\n" % " ".join([
+            "%s:\"%s\"" % (k, v) for k, v in sorted(task.items(), key=itemgetter(0))
+        ])
     d.pop('user', None)
     return _encode_task(d)
 

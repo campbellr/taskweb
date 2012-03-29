@@ -521,6 +521,7 @@ class TestViews(TaskTestCase):
                         data=data)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(list(Undo.objects.all()), [])
+        self.assertEqual(Task.serialize('pending'), data)
 
     def test_taskdb_PUT_completed(self):
         self._create_user_and_login()
@@ -530,6 +531,7 @@ class TestViews(TaskTestCase):
                         data=data)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(list(Undo.objects.all()), [])
+        self.assertEqual(Task.serialize('completed'), data)
 
     def test_taskdb_PUT_undo(self):
         self._create_user_and_login()
