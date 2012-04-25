@@ -3,7 +3,8 @@ Task Web
 ========
 
 .. image:: https://secure.travis-ci.org/campbellr/taskweb.png?branch=master
-
+    :alt: Build Status
+    :target: http://travis-ci.org/campbellr/taskweb
 
 ``task web`` is a Django-based web front-end for `taskwarrior <http://taskwarrior.org>`_.
 
