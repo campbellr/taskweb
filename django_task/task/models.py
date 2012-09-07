@@ -288,8 +288,9 @@ class Task(models.Model, DirtyFieldsMixin):
         if not task.pk:
             task.save(track=track)
 
-        # add the tags
-        for tag in d.get('tags', '').split(','):
+        # add the tags (for some reason it is a list of tags now and
+        # not a comma-separated string --danny)
+        for tag in d.get('tags', ''):
             if tag:
                 task.add_tag(tag, track=False)
 
