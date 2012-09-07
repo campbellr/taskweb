@@ -12,7 +12,7 @@ Although it currently very much in it's infancy, the project is intended to allo
 users to host a taskwarrior database for syncing with ``task merge``, as well as adding,
 editing, and closing tasks through the web.
 
-**NOTE**: ``task web`` is not yet in a usable state and **may mangle your task data!** 
+**NOTE**: ``task web`` is not yet in a usable state and **WILL CORRUPT YOUR TASK DATA** 
 Make sure you have backups before testing the the task sync feature.
 
 Screenshot
