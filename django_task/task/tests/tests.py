@@ -10,6 +10,7 @@ from task.util import parse_undo
 from task.grids import IDColumn, DescriptionWithAnnotationColumn
 from task import forms
 
+TASK_DATA = os.path.join(os.path.dirname(__file__), 'data')
 
 class TaskTestCase(TestCase):
     def create_user(self, username='foo', passw='baz'):
@@ -515,7 +516,7 @@ class TestViews(TaskTestCase):
 
     def test_taskdb_PUT_pending(self):
         self._create_user_and_login()
-        data = open(os.path.expanduser('~/.task/pending.data'), 'r').read()
+        data = open(os.path.join(TASK_DATA, 'pending.data'), 'r').read()
         response = self.client.put('/taskdb/pending.data',
                         content_type='text/plain',
                         data=data)
@@ -525,7 +526,7 @@ class TestViews(TaskTestCase):
 
     def test_taskdb_PUT_completed(self):
         self._create_user_and_login()
-        data = open(os.path.expanduser('~/.task/completed.data'), 'r').read()
+        data = open(os.path.join(TASK_DATA, 'completed.data'), 'r').read()
         response = self.client.put('/taskdb/completed.data',
                         content_type='text/plain',
                         data=data)
@@ -535,7 +536,7 @@ class TestViews(TaskTestCase):
 
     def test_taskdb_PUT_undo(self):
         self._create_user_and_login()
-        data = open(os.path.expanduser('~/.task/undo.data'), 'r').read()
+        data = open(os.path.join(TASK_DATA, 'undo.data'), 'r').read()
         expected_parsed = parse_undo(data)
 
         post_response = self.client.put('/taskdb/undo.data',
