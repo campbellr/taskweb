@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 requirements = [
         'Django >= 1.3',
         'djblets',
-        'taskw>0.4.3',
+        'taskw >= 0.4.3',
     ]
 
 with open('README') as f:
