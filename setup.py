@@ -1,10 +1,7 @@
 from setuptools import setup, find_packages
 
-requirements = [
-        'Django >= 1.3',
-        'djblets',
-        'taskw >= 0.4.3',
-    ]
+with open('requirements.txt') as f:
+    requirements = f.readlines()
 
 with open('README') as f:
     long_description = f.read()

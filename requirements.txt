@@ -1,4 +1,4 @@
 Django==1.3
 djblets
 psycopg2
-taskw>0.3.0
+taskw>=0.4.3
