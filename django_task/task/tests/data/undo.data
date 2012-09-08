@@ -1,0 +1,20 @@
+time 1347125849
+new [description:"buy some milk" entry:"1347125849" project:"home" status:"pending" uuid:"674e1461-86ad-4e20-8e8a-d28256571ef1"]
+---
+time 1347125883
+new [description:"a task with 'quoted' text" entry:"1347125883" status:"pending" uuid:"e331cac7-5098-4817-ae53-ef6b9b6c2772"]
+---
+time 1347125901
+new [description:"pay the bills" due:"1348984800" entry:"1347125901" status:"pending" uuid:"72aebb0f-ae12-4324-a4bd-3d944c75694a"]
+---
+time 1347125932
+new [description:"another important task" entry:"1347125932" priority:"H" status:"pending" uuid:"b2c95689-33b3-4ab7-83b2-27dac1a28f4d"]
+---
+time 1347125957
+old [description:"another important task" entry:"1347125932" priority:"H" status:"pending" uuid:"b2c95689-33b3-4ab7-83b2-27dac1a28f4d"]
+new [annotation_1347125957:"some annotation" description:"another important task" entry:"1347125932" priority:"H" status:"pending" uuid:"b2c95689-33b3-4ab7-83b2-27dac1a28f4d"]
+---
+time 1347125965
+old [annotation_1347125957:"some annotation" description:"another important task" entry:"1347125932" priority:"H" status:"pending" uuid:"b2c95689-33b3-4ab7-83b2-27dac1a28f4d"]
+new [annotation_1347125957:"some annotation" description:"another important task" end:"1347125965" entry:"1347125932" priority:"H" status:"completed" uuid:"b2c95689-33b3-4ab7-83b2-27dac1a28f4d"]
+---
