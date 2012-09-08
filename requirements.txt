@@ -1,4 +1,3 @@
-Django==1.3
+Django>=1.3
 djblets
-psycopg2
 taskw>=0.4.3
