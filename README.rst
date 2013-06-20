@@ -1,6 +1,12 @@
-========
-Task Web
-========
+====================
+Task Web (abandoned)
+====================
+
+Notice
+======
+
+Due to lack of time and bad design choices, this project is abandoned, although I do plan on
+reviving it in some form once `taskd <http://tasktools.org/projects/taskd.html>`_ is released.
 
 .. image:: https://secure.travis-ci.org/campbellr/taskweb.png?branch=master
     :alt: Build Status
